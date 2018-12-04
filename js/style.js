@@ -66,17 +66,6 @@ function createChoiceInput(parent, type, innerHTML, name = type) {
     return label
 }
 
-function hideNavItems() {
-    let width = 0;
-
-    topNav.children().each(function () {
-        width += this.offsetWidth
-        if (width > $(window).width() - 16 && $(this).attr("id") !== "topNavBtn")
-            $(this).addClass("w3-hide-small");
-    });
-    hiddenNavItems = $(".w3-hide-small");
-}
-
 function renameTitle() {
     function toTitleCase(str) {
         return str.replace(/(?:^|\s|-)\w/g, function (match) {
@@ -146,29 +135,36 @@ function addLinks() {
         else if (text.match(/OnePlus/)) { // OnePlus
             $(this).attr("href", `https://www.oneplus.com${text.match(/\/\w+/)}/specs`)
         }
-        
+        else if ($(this).attr("href").match(/chrome/)) { // OnePlus
+            $(this).attr("href", `https://chrome.google.com/webstore/search/${text}`)
+        }
+    });
+    $("main a:not([class])").each(function () {
+        text = $(this).text();
+        if ($(this).attr("href").match(/chrome/)) { // OnePlus
+            $(this).attr("href", `https://chrome.google.com/webstore/search/${text}`)
+        }
     });
 }
 
 function setStyle() {
 
-    $("main a:not([class])").addClass("my-highlight").css("textDecoration", "none");
+    addLinks();
+    renameTitle();
+    setListStyle();
+
+    $("main a:not([class])").addClass("my-highlight").css({textDecoration: "none"});
     $("code a").removeClass("my-highlight");
-    $("pre code").addClass("w3-code w3-panel w3-card").css({"borderLeft": `3px solid ${bgColor}`,"display":"block"});
+    $("pre code").addClass("w3-code w3-panel w3-card").css({borderLeft:`3px solid ${bgColor}`, display:"block", overflow: "scroll"});
     $(".my-page").addClass("w3-button w3-bar-item my-color");
     $(".my-color").addClass(color);
     $(".my-search").addClass("w3-btn w3-section w3-large w3-right");
     $(".my-tag").addClass("w3-btn w3-padding-small my-margin-small my-highlight my-border");
-    $(".my-border, hr").css("border", `2px solid ${bgColor}`);
-    $(".my-math").addClass("my-highlight").css("font-size", "16px");
+    $(".my-border, hr").css({border: `2px solid ${bgColor}`});
+    $(".my-math").addClass("my-highlight").css({fontSize: "16px"});
     $(".my-highlight, h1, h2, h3, h4, h5, h6, b, u, em, strong").each(function () {
         addHighlight($(this))
     });
-
-    renameTitle();
-    setListStyle();
-    hideNavItems();
-    addLinks();
 
 }
 

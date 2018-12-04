@@ -194,16 +194,15 @@ function Update-Entity {
 }
 
 function Get-Html {
-    Param($Uri, $Name="test")  
+    Param($Uri)  
     
-    if (!(Test-Path -Path $PSScriptRoot\$Name.html))
-    {
-        $html = Invoke-WebRequest -Uri $Uri -OutFile $PSScriptRoot\$Name.html
-    }
-
     $html = New-Object -ComObject "HTMLFile"
-    $html.IHTMLDocument2_write($(Get-Content -Path $PSScriptRoot\$Name.html -Raw ))
-    $html
+    $string = Invoke-RestMethod $Uri
+    $string = $string -replace "<head>(.*\n)*.*</head>"
+    $string = $string -replace "<section", "<div" -replace "/section>", "/div>"
+    $src = [System.Text.Encoding]::Unicode.GetBytes($string)
+    $html.write($src)
+    return $html
 }
 
 function Initialize-SendKeys{

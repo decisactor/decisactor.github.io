@@ -84,7 +84,7 @@ function showSpecialQuestion(article, section) {
     let highlight = $(`.${id}`);
     if (highlight.length) {
         highlight.children().each(function () {
-            this.css("color", bgColor);
+            this.css({color: bgColor});
         });
         addHighlight(highlight);
         highlight.scrollIntoView();
@@ -128,7 +128,7 @@ function addTextarea(parent) {
 
     return $("<textarea>", {
         class: "my-border w3-padding w3-block"
-    }).appendTo(parent).css("height", `${window.innerHeight}px`).on("input", function () {
+    }).appendTo(parent).css({height: `${window.innerHeight}px`}).on("input", function () {
         wordCount.html(`Word Count: ${getAllIndexes(this.value, " ").length + 1}`)
     });
 }
@@ -513,7 +513,7 @@ function startTest() {
         } else { // Reading Comprehension
 
             if (mobileFlag) {
-                questionDiv.css("borderTop", `3px solid ${bgColor}`);
+                questionDiv.css({borderTop: `3px solid ${bgColor}`});
                 setArticleHeight(screen.height - questionDiv[0].offsetHeight + 40 + "px");
 
             } else {
@@ -545,7 +545,7 @@ function startTest() {
                     option = this.charCodeAt(0) - 65;
                     if (option !== 13) {
                         let elem = inputs[i * 2 + option].parentNode;
-                        $(".my-checkbox", elem).css("backgroundColor", bgColor);
+                        $(".my-checkbox", elem).css({backgroundColor: bgColor});
                         elem.children[0].checked = true;
                     }
                 } else {
@@ -758,7 +758,7 @@ function addDropDown(element, length, parent) {
         }
 
         if (mobileFlag) {
-            dropdownContent.css("marginTop", "32px");
+            dropdownContent.css({marginTop: "32px"});
             innerHTML = uri.includes("essay") ? `<b>Essay ${i}</b>` : element + " " + i;
             $("<a>", {
                 class: "w3-bar-item w3-btn",
@@ -824,10 +824,10 @@ function addCategoryFilter() {
             class: "w3-bar w3-section"
         }).appendTo(setsDiv);
         if (!setFlag) {
-            div.css("fontSize", "13px");
+            div.css({fontSize: "13px"});
         }
         if (!mobileFlag) {
-            div.css("fontSize", "14px");
+            div.css({fontSize: "14px"});
         }
         if (!setFlag) {
             $("<span>", {
@@ -910,7 +910,7 @@ function addCategoryFilter() {
             class: "w3-bar w3-card my-color"
         }).appendTo(categoryDiv);
         if (mobileFlag) {
-            categoryDiv.css("fontSize", "13px");
+            categoryDiv.css({fontSize: "13px"});
         }
 
         // sections category

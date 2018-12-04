@@ -43,40 +43,17 @@ function Invoke-Installer {
 if ((Get-ExecutionPolicy) -eq "Restricted") {
     Start-Process powershell -Verb runAs -Argumentlist "Set-ExecutionPolicy Unrestricted"
 }
-#Start-Process -FilePath "C:\Program Files (x86)\Internet Explorer\iexplore.exe" # Setup IE for iwr
 # Show Hidden Item; File Extension
 
 # Installation
-$programs = "Git", "Node", "VSCode", "7-Zip"
+$programs = "git", "nodejs", "vscode", "7zip", "vlc", "chromium"
 if ((Get-CimInstance Win32_LogicalDisk).Size[0] / (2 -shl 29) -gt 60) { 
-    $programs += , "iCloud", "Google Sync", "Box", "Chrome", "Firefox", "VMware", "VirtualBox", "TeamViewer", "VLC",
-    ".Net Core", "Anaconda", "Steam", "Office"
+    $programs += , "itunes", "icloud", "google-backup-and-sync", "boxsync", "googlechrome", "firefox", "virtualbox", "teamviewer", "dotnetcore", "anaconda3", "steam", "VMware", "Office"
 }
-$apps = "iTunes", "VPN Pro"
 $programs.ForEach{
     $startMenu = "Microsoft\Windows\Start Menu\Programs\$_"
     $cmdPath = "$env:ProgramData\$startMenu"
-
-    if ($_ -match "Git") {
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-
-        $fileUri = "https://git-scm.com/download/win"
-        $installer = "64-bit.exe"
-    }
-    elseif ($_ -match "VSCode") {
-        $cmdPath = "$env:APPDATA\$startMenu" -replace "VSCode", "Visual Studio Code"
-    }
-    elseif ($_ -match "7-Zip") {
-        $fileUri = "https://www.7-zip.org/"
-        $installer = "x64.exe"
-    }
-    elseif ($_ -match "iCloud") {
-        $fileUri = "https://support.apple.com/en-us/HT204283"
-        $installer = "iCloudSetup.exe"
-    }
-    
-    Invoke-Installer $installer $fileUri
-
+    choco.exe install $_
     while (!(Test-Path $cmdPath)) {}
     if ($_ -match "VSCode") {
         # Install Extensions

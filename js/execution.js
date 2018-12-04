@@ -85,15 +85,16 @@ function addTopNav(color) {
     topNav = $("<nav>", {
         class: `${color} w3-bar w3-card w3-center w3-margin-bottom`,
         id: "topNav"
-    }).prependTo($("body"));
+    }).prependTo($("body")).css({overflow: "auto", whiteSpace: "nowrap"});
 
     let size = mobileFlag ? 16 : 18;
     let padding = mobileFlag ? "0 8px" : "4px 8px";
+    let float = mobileFlag ? "none" : "left";
     $("<a>", {
         href: `${folder}/index.html`,
         class: "w3-bar-item w3-button",
         html: `<img src="${icons8}android/${size}/ffffff/home.png">`
-    }).appendTo(topNav).css("padding", padding);
+    }).appendTo(topNav).css({padding: padding, display: "inline-block"})
 
     // Add Bar Item
     $(barItems).each(function () {
@@ -101,29 +102,8 @@ function addTopNav(color) {
             href: folder + test + this.toLowerCase() + `/${this.toLowerCase()}.html`,
             class: "w3-bar-item w3-button my-padding",
             html: this
-        }).appendTo(topNav);
+        }).appendTo(topNav).css({float: float, display: "inline-block"});;
     });
-
-    // Add Top Nav Button
-    $("<button>", {
-        id: "topNavBtn",
-        class: "w3-bar-item w3-button w3-right w3-hide-large w3-hide-medium w3-padding-small",
-        html: "\u25BC"
-    }).appendTo(topNav).click(function () {
-
-        // toggle top navigation bar item
-        hiddenNavItems.each(function () {
-            $(this).toggleClass("w3-bar-block w3-hide-small");
-        });
-
-        // toggle top navigation shape
-        if ($(this).html() == "\u25B2") {
-            $(this).html("\u25BC");
-        } else {
-            $(this).html("\u25B2");
-        }
-    });
-
 
     $(window).scroll(() => {
         if (window.pageYOffset != $(topNav).offset().Top) {
@@ -168,6 +148,108 @@ function addScripts(scripts) {
     });
 }
 
+function createNavigation(name) {
+
+    function createWords(div, name, regexp) {
+
+        $("<button>", {
+            class: "my-page",
+            html: name
+        }).appendTo(div).click((e) => {
+            if ($(e.target).text().match("V")) { 
+                name = "Verbal";
+                regexp = regexp.replace(/V\w*/, "");
+            }
+            if (regexp.match(/\d/)) regexp = regexp.replace("-", " ").toUpperCase()
+            else {
+                name = link.sets.find(set => set.links.includes(name)).name;
+                regexp = regexp + name
+            }
+            wordsDiv.html("");
+            set = sets.find(set => set.name.match(regexp));
+
+            let buttons = ["Practice", "Listen", "Recite"];
+
+            div = $("<div>", {
+                class: `w3-bar w3-center w3-section`
+            }).appendTo(wordsDiv);
+
+            $(buttons).each(function () {
+                $("<button>", {
+                    class: `${color} w3-button w3-large w3-left`,
+                    html: this
+                }).appendTo(div).click(() => {
+                    if (this.match("Practice")) {
+                        $(set.words).each(function () {
+                            addWordModal(this, wordsDiv);
+                        });
+                    }
+                    else if (this.match("Recite")) {
+                        createWordTest(set);
+                    }
+                    else if (this.match("Listen")) {
+                        createListening(set);
+                    }
+                });
+            });
+        });
+    }
+
+    link = links.find(set => set.name.match(name));
+
+    $(link.sets).each(function () {
+        let div = $("<div>", {
+            class: "w3-bar my-margin"
+        }).appendTo(main);
+
+        $("<div>", {
+            class: "w3-margin-right my-page",
+            html: `${this.name}`
+        }).appendTo(div);
+
+        if (this.links) {
+            href = this
+            $(this.links).each(function () {
+                if (!mobileFlag) name = this
+                else name = this.replace(/Issue ?/, "I").replace(/Argument ?/, "A").replace(/Verbal ?/, "V")
+                
+                if (html.match(/vocabulary/)) {
+                    createWords(div, name, `${link.name.toUpperCase()} ${name}`);
+                }
+                else {
+                    $("<a>", {
+                        class: "my-page",
+                        html: name,
+                        href: `${link.name}-${href.name}-${this}.html`.toLowerCase()
+                    }).appendTo(div);
+                }
+            });
+        } else {
+            for (let i = 1; i <= this.count; i++) {
+
+                if (html.match(/vocabulary/)) {
+                    createWords(div, i, `${this.href}`.replace("-verbal.html", i));
+                }
+                else {
+                    $("<a>", {
+                        class: "w3-button w3-bar-item my-color my-page",
+                        html: `${i}`,
+                        href: `${this.href}`.replace("verbal.html", `verbal${i}.html`)
+                    }).appendTo(div);
+                }
+            }
+        }
+    });
+
+    if (html.match(/vocabulary/)) {
+        wordsDiv = $("<div>", {
+            class: "w3-section w3-bar w3-row",
+            id: "words"
+        }).appendTo(main);
+    }
+    setStyle();
+}
+
 function execScripts() {
 
     function updateCharacter() {
@@ -177,43 +259,6 @@ function execScripts() {
         main.html(main.html().replace(/\u00E2\u20AC\u0153/g, "\u201C"))
         main.html(main.html().replace(/\u00E2\u20AC\u009D/g, "\u201D"))
         main.html(main.html().replace(/\u00E2\u20AC\u00A6/g, "\u2026"))
-    }
-
-    function createNavigation() {
-        set = links.find(set => set.name.match(html));
-
-        $(set.sets).each(function () {
-            let div = $("<div>", {
-                class: "w3-bar my-margin"
-            }).appendTo(main);
-
-            $("<div>", {
-                class: "w3-margin-right my-page",
-                html: `${this.name}`
-            }).appendTo(div);
-
-            if (this.links) {
-                sets = this
-                $(this.links).each(function () {
-                    if (!mobileFlag) name = this
-                    else name = this.replace(/Issue ?/, "I").replace(/Argument ?/, "A").replace(/Verbal ?/, "V")
-                    $("<a>", {
-                        class: "my-page",
-                        html: name,
-                        href: `${set.name}-${sets.name}-${this}.html`.toLowerCase()
-                    }).appendTo(div);
-                });
-            } else {
-                for (let i = 1; i <= this.count; i++) {
-                    $("<a>", {
-                        class: "w3-button w3-bar-item my-color my-page",
-                        html: `${i}`,
-                        href: `${this.href}`.replace("verbal.html", `verbal${i}.html`)
-                    }).appendTo(div);
-                }
-            }
-        });
-        setStyle();
     }
 
     updateCharacter();
@@ -241,9 +286,11 @@ function execScripts() {
         waitLoad("#filter", () => addTOC());
     }
 
-    if (uri.match(/gre\/(\w+).\1.html/) && !uri.includes("notes.html")) {
+    if (uri.match(/gre/)) {
         addScripts(["literals/gre"]);
-        waitLoad("#gre", createNavigation);
+        if (uri.match(/gre\/(\w+).\1.html/) && !uri.includes("notes.html")) {
+            waitLoad("#gre", () => createNavigation(html));
+        }
     }
 
     if (uri.includes("topic")) {
@@ -339,8 +386,8 @@ function execScripts() {
 
     // index page
     if (uri.includes("index.html")) {
-        addScripts(["index"]);
-        waitLoad("#index", () => showHomepage());
+        addScripts(["homepage"]);
+        waitLoad("#homepage", () => showHomepage());
     }
 
     if (uri.includes("quantitative")) {
@@ -386,7 +433,7 @@ function execScripts() {
 
 }
 
-mobileFlag = screen.width < 600 ? true : false;
+mobileFlag = screen.width < 420 ? true : false;
 icons8 = "https://png.icons8.com/";
 html = uri.split("/").slice(-1)[0].split(".")[0];
 

@@ -16,28 +16,50 @@
         <h2>Windows</h2>
 
         <section>
-          <h3>Start</h3>
+          <h3>Pre-Installation</h3>
+
           <ol>
-            <li>Setup OneDrive <a href="https://support.office.com/en-us/article/sync-files-with-the-onedrive-sync-client-in-windows-615391c4-2bd3-4aae-a42a-858262e42a49">(Sync files with the OneDrive sync client in Windows)</a></li>
-            <li>Download <code class="ps">Initialize-Windows.ps1</code></li>
-            <li>Run <code class="ps">$env:USERPROFILE\OneDrive\GitHub\powershell\Initialize-Windows.ps1</code></li>
+            <li>Copy Files in <b>Downloads</b> and <b>Documents</b> to external hard drive</li>
+            <li>Download ISO From Torrent Sites <a href="https://www.1337x.to/search/windows+1809/1/">1337x</a></li>
+            <li>Create bootable USB drives by <a href="https://rufus.ie/">Rufus</a></li>
           </ol>
+
         </section>
+
         <section>
-          <h3>OneDrive</h3>
-          <p><a href="https://support.office.com/en-us/article/sync-files-with-the-onedrive-sync-client-in-windows-615391c4-2bd3-4aae-a42a-858262e42a49">(Sync files with the OneDrive sync client in Windows)</a></p>
+          <h3>Installation</h3>
+
+          <ol>
+            <li>Activate Windows by <a href="http://www.kmsauto.info/">KMSAuto</a></li>
+            <li>Update Drivers</li>
+            <li>Run code in Admin: <code class="ps"> Set-ExecutionPolicy Unrestricted</code></li>
+            <li>
+              <span>Install <a href="https://chocolatey.org/install">Chocolatey</a>. Run the following code in Admin (<code>Win + X, A</code>)</span>
+              <pre><code class="ps">
+              Set-ExecutionPolicy Bypass -Scope Process -Force
+              Invoke-Expression (( New-Object System.Net.WebClient ).DownloadString('https://chocolatey.org/install.ps1'))
+              </code></pre>
+              <span>Run <code class="ps">C:\GitHub\powershell\Initialize-Windows.ps1</code></span>
+            </li>
+            <li>$env:Path += ";%AppData%\npm\node_modules"</li>
+          </ol>
+
         </section>
+
         <section>
-          <h3>PowerShell</h3>
-          <pre><code class="ps">
-            Set-ExecutionPolicy Unrestricted
-          </code></pre>
+          <h3>Post-Installation</h3>
+
+          <section>
+            <h4>Chromium</h4>
+            <p>Download VPN CRX <a href="https://www.crx4chrome.com/crx/650/">Browsec</a> and drag and drop to <b>Extensions</b> with <b>Developer Mode</b> on.</p>
+            <p>Install <a href="chrome">AdBlock</a>, <a href="chrome">Popup Blocker</a>, <a href="chrome">Google Dictionary</a>.</p>
+          </section>
         </section>
-    
+
       </section>
 
     </section>
-    
+
   </main>
 
 </body>

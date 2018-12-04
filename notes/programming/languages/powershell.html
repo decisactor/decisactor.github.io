@@ -20,7 +20,7 @@
       $element | Add-Member Property $property
       $element | Add-Member @{Property1 = $property1; Property2 = $property2}
       $array += $element
-      #https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/add-member?view=powershell-6
+      # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/add-member?view=powershell-6
 
       # Array Operation
       $animals = "cat", "dog", "bat"  # Create animal Array with 3 Elements
@@ -122,7 +122,7 @@
       $keys.Property = $value
 
       # PnpDeice
-      (Get-PnpDevice).Where{ $_.FirendlyName -match $regex} | Disable-PnpDevice -Confirm:$false | Enable-PnpDevice -Confirm:$false
+      ( Get-PnpDevice ).Where{ $_.FirendlyName -match $regex} | Disable-PnpDevice -Confirm:$false | Enable-PnpDevice -Confirm:$false
 
       Set-ExecutionPolicy Undefined # to run powershell script
 
@@ -154,7 +154,7 @@
           Format-Table Path, LineNumber -AutoSize
 
       # First Letter Uppercase
-      (Get-Culture).TextInfo.ToTitleCase($category)
+      ( Get-Culture ).TextInfo.ToTitleCase($category)
 
       # Get MD5 Checksum
       $fileHash = Get-FileHash $iso -Algorithm MD5

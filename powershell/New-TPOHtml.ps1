@@ -646,13 +646,13 @@ function Set-Explanation ($Path, $Link, $Explanation, $set) {
         if ($flag -or $true) {
             $html = (Invoke-WebRequest $Link)
             $document = $html.ParsedHtml.body
-            $textContent = $document.getElementsByClassName("desc")[0].textContent
-            if(!$textContent.Contains("`n")) { $textContent = $document.getElementsByClassName("desc")[0].innerText }
+            $textContent = $document.querySelector(".desc").textContent
+            if(!$textContent.Contains("`n")) { $textContent = $document.querySelector(".desc").innerText }
             $explanation = $textContent
 
             if (!$node) { Add-XmlNode ("Explanation", $explanation) (Select-Xml "//TestItem" $xml).Node | Out-Null }
             else {  $node.innerText = $explanation }
-            $keys = Get-Key $document.getElementsByClassName("left correctAnswer")[0].children[0].innerText
+            $keys = Get-Key $document.querySelector(".left correctAnswer").children[0].innerText
             (Select-Xml "//Key" $xml).Node.innerText = $keys
             New-File $xml $Path
         }
@@ -795,8 +795,8 @@ function Get-Sets ($selectedSection, $set, $question) {
                 
                 if ($section -eq "Reading") {
                     $textType = "PassageText"
-                    $title = $document.getElementsByClassName("article_tit")[0].innerText
-                    $text = $document.getElementsByClassName("article")[0].innerText
+                    $title = $document.querySelector(".article_tit").innerText
+                    $text = $document.querySelector(".article").innerText
                     $text = Format-Paragraphs $text
                     $text = "}$title}`n        $text"
                     $text = $text.Insert(0, " " * (60 - [int]($title.Length/2) ) )
@@ -870,7 +870,7 @@ function Get-Reading($set, $question) {
     
     $xml = Add-XmlTestItemNode @{CLASS = "passage_ssmc"}
 
-    $text = $document.getElementsByClassName("article")[0]
+    $text = $document.querySelector(".article")
     $passageText = $text.innerText
     $passageText = Format-Paragraphs $passageText 
     $passageText = "}$title}`n        $passageText"
@@ -878,7 +878,7 @@ function Get-Reading($set, $question) {
     $passageText = $passageText.Replace("[", "(")
     $passageText = $passageText.Replace("]", ")")
 
-    $question = $document.getElementsByClassName("left text")[0]
+    $question = $document.querySelector(".left text")
 
     # Add paragraph mark and paragraph element if question text has "(P|p)aragraph 2" or "paragraphs 3 and 4" 
     $match = ($question.innerText | Select-String "aragraphs? ?(?<Para1>[0-9])( and (?<Para2>[0-9]))?").Matches
@@ -1050,7 +1050,7 @@ function Get-Reading($set, $question) {
 
     # Key
     
-    $keys = Get-Key $document.getElementsByClassName("left correctAnswer")[0].children[0].innerText
+    $keys = Get-Key $document.querySelector(".left correctAnswer").children[0].innerText
     
     Add-XmlChildNodes $xml @("Key") @($keys)
 
@@ -1095,8 +1095,8 @@ function Get-Reading($set, $question) {
         Add-XmlChildNodes $xml @("specialShowAnswer") @($keys)
     }
 
-    #$explanation = Get-Translation $document.getElementsByClassName("desc")[0].innerText
-    Add-XmlChildNodes $xml @("Explanation") @($document.getElementsByClassName("desc")[0].innerText)
+    #$explanation = Get-Translation $document.querySelector(".desc").innerText
+    Add-XmlChildNodes $xml @("Explanation") @($document.querySelector(".desc").innerText)
 
     New-File $xml "$xmlPath\$filePath.xml" 
     New-File $passageText "$xmlPath\$filePath.txt"
@@ -1111,7 +1111,7 @@ function Get-Listening ($set, $question) {
     $document = $html.ParsedHtml.body
 
     $xml = Add-XmlTestItemNode @{CLASS = "ssmc_simple"}
-    $questionText = $document.getElementsByClassName("left text")[0].innerText
+    $questionText = $document.querySelector(".left text").innerText
     $names = "Stem", "StemWav"
     $nodes = (Remove-Characters $questionText), "$filePath.wav"
     Add-XmlChildNodes $xml $names $nodes
@@ -1131,7 +1131,7 @@ function Get-Listening ($set, $question) {
     Add-XmlChildNodes $xml $names $nodes "Distractor_list"
 
     # Key .children[0]
-    $answer = $document.getElementsByClassName("left correctAnswer")[0].children[0].innerText
+    $answer = $document.querySelector(".left correctAnswer").children[0].innerText
     $keys = ""
     foreach($item in $answer.ToCharArray()) {
         $keys += ([int][char]$item - 64).ToString()
@@ -1163,8 +1163,8 @@ function Get-Listening ($set, $question) {
 
     }
 
-    #$explanation = Get-Translation $document.getElementsByClassName("desc")[0].innerText
-    Add-XmlChildNodes $xml @("Explanation") @($document.getElementsByClassName("desc")[0].innerText)
+    #$explanation = Get-Translation $document.querySelector(".desc").innerText
+    Add-XmlChildNodes $xml @("Explanation") @($document.querySelector(".desc").innerText)
 
     New-File $xml "$xmlPath\$filePath.xml" 
 }
@@ -1182,8 +1182,8 @@ function Get-Speaking ($i) {
     if ($i -ne 1 -and $i -ne 2) {
         if ($i -eq 3 -or $i -eq 4) {
             # "miniPassage" 
-            $title = $document.getElementsByClassName("article_tit")[0].innerText 
-            $article = $document.getElementsByClassName("article")[0].innerText
+            $title = $document.querySelector(".article_tit").innerText 
+            $article = $document.querySelector(".article").innerText
             
             $names = "miniPassageIntroSound", "miniPassageIntroPic", "miniPassageDuration", "miniPassageTitle", "miniPassageText"
             $nodes = "$($filePath)P.wav", "Sampler\headphon.jpg", 45, $title, (Remove-Characters $article)
@@ -1201,11 +1201,11 @@ function Get-Speaking ($i) {
         Add-XmlNodes $xml $xml.FirstChild `
         @{
             Name      = "AudioText";
-            innerText = (Update-Characters $document.getElementsByClassName("audio_topic")[0].innerText)
+            innerText = (Update-Characters $document.querySelector(".audio_topic").innerText)
         } | Out-Null
 
         # question text
-        $text = $document.getElementsByClassName("article ques")[0].innerText
+        $text = $document.querySelector(".article ques").innerText
 
         #Get Question Audio
         Get-Audio $Links[$i-1] "$xmlPath\$filePath.mp3"
@@ -1213,14 +1213,14 @@ function Get-Speaking ($i) {
     }
     else { # independent speaking
         # question text
-        $text = $document.getElementsByClassName("article")[0].innerText
-        if (!$text) { $text = $document.getElementsByClassName("article")[0].nextSibling.innerText }
+        $text = $document.querySelector(".article").innerText
+        if (!$text) { $text = $document.querySelector(".article").nextSibling.innerText }
     }
 
     # Get Question Audio
     Get-Audio "$website/$type/start-$($articles[$i-1])-13.html?step=getquestion" "$xmlPath\$prefix$($i)Q.mp3"
 
-    $sampleText = $document.getElementsByClassName("ansart")[0].innerText
+    $sampleText = $document.querySelector(".ansart").innerText
 
     $names = "Stem", "StemWav", "SampleResponse", "Category"
     $nodes = `
@@ -1242,8 +1242,8 @@ function Get-Writing ($i) {
     if ($i -eq 1) { # Integrated Writing 
         # miniPassage
         $xml = Add-XmlTestItemNode @{CLASS = "writelisten_paced"; TIMELIMIT = "20"; SHOWDIRECTIONS = "FALSE"} 
-        $text = $document.getElementsByClassName("article")[0].innerText
-        if (!$text) { $text = $document.getElementsByClassName("article")[0].nextSibling.innerText }
+        $text = $document.querySelector(".article").innerText
+        if (!$text) { $text = $document.querySelector(".article").nextSibling.innerText }
         $names = "miniPassageDuration", "miniPassageText"
         $nodes = 180, (Update-Characters $text)
         Add-XmlChildNodes $xml $names $nodes "miniPassage"
@@ -1258,8 +1258,8 @@ function Get-Writing ($i) {
         $names = "AudioText", "Stem", "StemWav"
         $nodes = `
         @(
-            (Update-Characters $document.getElementsByClassName("audio_topic")[0].innerText),
-            (Update-Characters $document.getElementsByClassName("tigan")[0].innerText)
+            (Update-Characters $document.querySelector(".audio_topic").innerText),
+            (Update-Characters $document.querySelector(".tigan").innerText)
             "Sampler\SAWQ.wav"
         )  
 
@@ -1270,7 +1270,7 @@ function Get-Writing ($i) {
     else { # Independent Writing Xml
         
         $xml = Add-XmlTestItemNode @{CLASS = "independentwriting_paced"; TIMELIMIT = "30"}
-        $questionText = $document.getElementsByClassName("article")[0].innerText
+        $questionText = $document.querySelector(".article").innerText
         
         # Question
         $names = @("Stem") 
@@ -1278,8 +1278,8 @@ function Get-Writing ($i) {
     }
 
     # sample Text
-    $sampleText = $document.getElementsByClassName("noedit fanwen")[0].innerText
-    if (!$sampleText.Contains("`n")) { $sampleText = $document.getElementsByClassName("noedit fanwen")[0].textContent }
+    $sampleText = $document.querySelector(".noedit fanwen").innerText
+    if (!$sampleText.Contains("`n")) { $sampleText = $document.querySelector(".noedit fanwen").textContent }
     $names += "SampleResponse", "Category"
     $nodes += (Update-Characters $sampleText), $category[$i-1]
     Add-XmlChildNodes $xml $names $nodes

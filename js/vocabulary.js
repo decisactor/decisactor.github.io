@@ -1,14 +1,22 @@
-function addSound(link, parent) {
-    var audio = $("<audio>", {
-        src: link
-    }).appendTo(parent)
+function playSound(word, flag) {
+    audios = [];
+    for (let i = 1; i < 4; i++) {
+        let audio = $("<audio>", {
+            src: `https://s3.amazonaws.com/audio.oxforddictionaries.com/en/mp3/${word}_us_${i}.mp3`
+        }).appendTo(main)[0]
+        if (flag) audios.push(audio)
+        else audio.play()
+        
+    }
+    if (flag) return audios
+}
 
-    $("<img>", {
+function addSound(word, parent) {
+    
+    return $("<img>", {
         src: `${icons8}metro/20/${rgb2hex(bgColor)}/speaker.png`,
         class: "w3-padding-small my-button"
-    }).appendTo(parent).click(function () {
-        audio[0].play()
-    });
+    }).appendTo(parent).click(() => playSound(word));
 }
 
 function addWordModal(word, parent) {
@@ -20,8 +28,12 @@ function addWordModal(word, parent) {
     $("<div>", {
         class: "w3-card w3-center w3-border w3-large my-button",
         html: `<b>${word.word}</b>`
-    }).appendTo(wordDiv).click(function () {
+    }).appendTo(wordDiv).click( () => {
+        $("<div>", {
+            class: "w3-left"
+        }).appendTo(main).css({height: "100%"}).css({cursor: "pointer"})
         showWordModal(word)
+       
     });
     setStyle();
 }
@@ -30,6 +42,7 @@ function showWordModal(word) {
 
     var details = Object.keys(word)
     var modal = createModal();
+    modal.parent().show();
 
     // title bar
     let bar = $("<div>", {
@@ -38,11 +51,11 @@ function showWordModal(word) {
     $("<span>", {
         class: "w3-left my-button my-padding",
         html: "Word Details"
-    }).appendTo(bar).css("cursor", "initial");
+    }).appendTo(bar).css({cursor: "pointer"});
     $("<span>", {
         class: "w3-right my-button my-padding",
         html: "X"
-    }).appendTo(bar).click(function () {
+    }).appendTo(bar).click( () => {
         modal.parent().remove();
     });
 
@@ -55,80 +68,73 @@ function showWordModal(word) {
         html: `<b>${word.word}</b>`
     }).appendTo(div);
 
-    addSound(word.sounds, termDiv);
+    addSound(word.word, termDiv)[0].click();
 
     // details
     $(details).filter(function () {
-        return !(/word|sound/).exec(this)
+        return !(/word/).exec(this)
     }).each(function () {
+        let detailDiv = $("<div>", {
+            class: "w3-padding-small"
+        }).appendTo(div);
+        $("#synonyms").click();
+    
+        detailDiv.html(detailDiv.html() + `<h4>${this}</h4>` + word[this])
 
-        $("<button>", {
-            class: `${color} w3-btn my-margin-small w3-padding-small`,
-            id: this,
-            html: this
-        }).appendTo(div).click(function () {
+        if (this == "examples") {
+            $("p", detailDiv).each(function () {
+                var sentence = $(this)
+                $(sentence.text().split(" ")).each(function () {
 
-            detailDiv.addClass("w3-padding-small");
-            detailDiv.html(word[$(this).text()])
-
-            // highlight word in example
-            if ($(this).text() == "examples") {
-                $("p", detailDiv).each(function () {
-                    var sentence = $(this)
-                    $(sentence.text().split(" ")).each(function () {
-
-                        if (word.family.includes(`<li>${this}<`)) {
-                            element = this.replace(/[,.]/, "")
-                            sentence.html(sentence.html().replace(element, `<b>${element}</b>`))
-                        }
-                    });
+                    if (word.family.includes(`<li>${this}<`)) {
+                        element = this.replace(/[,.]/, "")
+                        sentence.html(sentence.html().replace(element, `<b>${element}</b>`))
+                    }
                 });
-            } else if ($(this).text() == "synonyms") {
+            });
+        } else if (this == "synonyms") {
 
-                $("div", detailDiv).each(function () {
-                    $(this).addClass("w3-section");
-                    let link = this.className.match(/exs/) ? "https://en.oxforddictionaries.com/definition/us/" :
-                        "https://www.thefreedictionary.com/"
-                    $(this).html($(this).html().replace(/(\w{3,})/g, `<a class="my-link" href="${link}$1">$1</a>`))
-                });
-            } else if ($(this).text() == "family") {
+            $("div", detailDiv).each(function () {
+                $(this).addClass("w3-section");
+                let link = this.className.match(/exs/) ? "https://en.oxforddictionaries.com/definition/us/" :
+                    "https://www.thefreedictionary.com/"
+                $(this).html($(this).html().replace(/(\w{3,})/g, `<a class="my-link" href="${link}$1">$1</a>`))
+            });
+        } else if (this == "family") {
 
-                $("li", detailDiv).each(function () {
-                    $("<a>", {
-                        class: "my-link",
-                        href: ("https://en.oxforddictionaries.com/definition/us/" + this.childNodes[0].textContent),
-                        text: this.childNodes[0].textContent
-                    }).prependTo($(this));
-                    this.childNodes[1].textContent = ""
-                });
-            }
-            /**
-                       else if ($(this).text() == "etymology") {
-                           $("a", detailDiv).each(function () {
-                               let index = this.href.indexOf("/wiki/")
-                               let string = this.href.substring(index, this.href.length)
-                               this.href = "https://en.wiktionary.org" + string;
-                           });
-                       } */
-            setStyle();
-        });
+            $("li", detailDiv).each(function () {
+                $("<a>", {
+                    class: "my-link",
+                    href: ("https://en.oxforddictionaries.com/definition/us/" + this.childNodes[0].textContent),
+                    text: this.childNodes[0].textContent
+                }).prependTo($(this));
+                this.childNodes[1].textContent = ""
+            });
+        } else if (this == "etymology") {
+            detailDiv.html(detailDiv.html().replace(/\u2018(.*?)\u2019/g, `<b>$1</b>`))
+        }
 
     });
-
-    let detailDiv = $("<div>", {
-        class: "my-margin-small w3-padding-small"
-    }).appendTo(div);
-    $("#synonyms").click();
 
     $("<button>", {
         class: `${color} w3-btn w3-bar w3-padding-small w3-section`,
         html: "close"
-    }).appendTo(div).click(function () {
-        modal.parent().remove();
-    });
+    }).appendTo(div).click( () => modal.parent().remove());
     setStyle();
 
-    modal.parent().show();
+    let words = sets.find(set => set.words.find(item => item.word.match(word))).words;
+    let index = words.indexOf(word);
+    let width = (screen.width - modal.width()) / 2;
+    let buttons = ["left", "right"];
+    $(buttons).each( function () {
+        $("<div>", {
+            class: `w3-${this}`,
+        }).prependTo(modal).css({height:"100%", width: width, position: "fixed", cursor: "pointer"}).css(`${this}`,0).click( function () {
+            modal.parent().remove();
+            if ($(this).hasClass("w3-left")) { if (index > 0) showWordModal(words[--index]) }
+            else { if (index < words.length - 1) showWordModal(words[++index]) }
+        });
+    })
 }
 
 function filterWord(value) {
@@ -151,72 +157,37 @@ function createWordSets() {
         class: "w3-bar",
     }).appendTo(main);
 
-    $("<button>", {
-        class: `${color} w3-btn w3-section w3-large w3-padding w3-left `,
-        html: `Recite`
-    }).appendTo(div).click(createWordTest);
-
-
-    createSearchBtn(div, `${color} my-search w3-padding`, filterWord).click(() => {
-        $("button", setsDiv).toggle();
-    });
-
-    setsDiv = $("<div>", {
-        class: "w3-section w3-bar w3-row",
-        id: "sets"
+    div = $("<div>", {
+        class: `w3-bar w3-center w3-section`
     }).appendTo(main);
 
-    $(sets).each(function () {
+    let parent = mobileFlag ? main : div;
+    createSearchBtn(parent, `${color} my-search w3-padding w3-left`, filterWord).click(() => {
+        
+    });
 
-        var words = this.words;
-
+    $("#topNav .my-padding").each( function () {
+        if (this.innerHTML.match("Notes")) return
         $("<button>", {
-            class: `${color} w3-btn my-margin-small`,
-            html: this.name
-        }).appendTo(setsDiv).click(() => {
-            wordsDiv.html("");
-            $(words).each(function () {
-                addWordModal(this, wordsDiv);
-            });
+            class: `${color} w3-bar-item w3-button my-padding w3-section w3-large w3-left`,
+            html: this.innerHTML
+        }).appendTo(div).click( () => {
+            $("div.my-margin").remove();
+            $("#words").remove();
+            createNavigation(this.innerHTML.toLowerCase());
         });
     });
 
-    wordsDiv = $("<div>", {
-        class: "w3-section w3-bar w3-row",
-        id: "words"
-    }).appendTo(main);
     setStyle();
 }
 
-function createWordTest() {
-
-    function showModal() {
-        var modal = createModal();
-        $("<div>", {
-            class: `${color} w3-padding`,
-            html: "Vocabulary Set"
-        }).appendTo(modal);
-        let p = $("<div>", {
-            class: `w3-padding-small`
-        }).appendTo(modal);
-        $(sets).each(function (i, element) {
-
-            $("<button>", {
-                class: `${color} w3-btn my-margin-small`,
-                html: this.name
-            }).appendTo(p).click(function () {
-                modal.parent().remove();
-                showQuestion(element);
-            });
-
-        });
-        toggleElement();
-        modal.parent().show();
-    }
+function createWordTest(set) {
 
     // Confirm Action like "Exit"
     function showConfirmModal(type) {
         var modal = createModal();
+        modal.parent().show();
+
         $("<div>", {
             class: `${color} w3-padding`,
             html: "Confirm " + type
@@ -235,23 +206,18 @@ function createWordTest() {
         yesBtn = $("<button>", {
             class: `${color} w3-btn w3-margin w3-left`,
             html: "Yes"
-        }).appendTo(buttonBar);
+        }).appendTo(buttonBar).click( () => showReviewModal());;
         noBtn = $("<button>", {
             class: `${color} w3-btn w3-margin w3-right`,
             html: "No"
-        }).appendTo(buttonBar)
-        yesBtn.click(function () {
-            showReviewModal();
-        });
-        noBtn.click(function () {
-            modal.parent().remove();
-        });
+        }).appendTo(buttonBar).click( () => modal.parent().remove());
 
-        modal.parent().show();
     }
 
     function showReviewModal() {
-        var modal = createModal();
+        var modal = createModal()
+        modal.parent().show();
+
         $("<div>", {
             class: `${color} w3-padding`,
             html: "Review Test"
@@ -271,11 +237,10 @@ function createWordTest() {
             addWordModal(this, div);
         });
 
-        modal.parent().show();
         $("<button>", {
             class: `${color} w3-btn w3-padding w3-margin-top w3-bar`,
             html: "Exit"
-        }).appendTo(modal).click(function () {
+        }).appendTo(modal).click( () => {
             modal.parent().remove();
             toggleElement();
             $("#testDiv").remove();
@@ -330,7 +295,7 @@ function createWordTest() {
 
         // show detail
         detailDiv.html(`<b>${word.word}</b>`) // questions is word)
-        addSound(word.sounds, detailDiv);
+        addSound(word.word, detailDiv);
 
         var optionsLength = 4;
         var paragraphs = [];
@@ -371,9 +336,9 @@ function createWordTest() {
 
         // add check-next button
         $("<button>", {
-            class: `${color} w3-btn w3-padding w3-section w3-bar`,
+            class: `${color} w3-btn w3-padding w3-section w3-left`,
             html: "Check"
-        }).appendTo(optionDiv).click(function () {
+        }).appendTo(optionDiv).click( () => {
             let btn = $(this)
             if ($(this).text() == "Next") showQuestion(set);
             var labels = $(".my-label", optionDiv);
@@ -385,9 +350,7 @@ function createWordTest() {
                     let word = words.find(element => element[detail].includes($(options[i]).html()))
                     $("<b>", {
                         html: ` [${word.word}]`
-                    }).appendTo($(this)).click(function () {
-                        showWordModal(word)
-                    });
+                    }).appendTo($(this)).click( () => showWordModal(word));
                 }
 
                 if (input.length && answers[i] == null || !input.length && answers[i] != null) {
@@ -404,11 +367,9 @@ function createWordTest() {
         });
 
         $("<button>", {
-            class: `${color} w3-button w3-padding w3-bar`,
+            class: `${color} w3-button w3-padding w3-section w3-right`,
             html: "Exit"
-        }).appendTo(optionDiv).click(function () {
-            showConfirmModal("Exit");
-        });
+        }).appendTo(optionDiv).click( () => showConfirmModal("Exit"));
 
         setStyle();
     }
@@ -434,13 +395,13 @@ function createWordTest() {
     var error = 0; // error count
     var forgottenWords = []; // wrong word you select in the test and correct word you didn't select
 
-    showModal();
-
+    toggleElement();
+    showQuestion(set);
 }
 
 function addWord() {
     let name = html.replace(/-verbal\d*.html/, "")
-    let regexp = new RegExp(name.replace("-", " "), "i");
+    let regexp = new RegExp(name.replace("-verbal", "").replace("-", " "), "i");
     words = sets.find(set => set.name.match(regexp));
     if (!words) return;
     else words = words.words
@@ -448,21 +409,33 @@ function addWord() {
         let content = $(this);
         $(content.html().match(/\w{3,}/g)).each(function () {
             let word = words.find(word => {
-                if (word.family.includes(`<li>${this}<`)) {
-                    return word.word
-                }
+                if (word.family.includes(`<li>${this}<`)) return word.word
             });
             if (word) content.html(content.html().replace(this, `<b class="word">${this}</b>`))
         });
     })
 
     $(".word", main).each(function () {
-        $(this).click(function () {
+        $(this).click( () => {
             showWordModal(words.find(word => {
-                if (word.family.includes(`<li>${$(this).text()}<`)) {
-                    return word.word
-                }
+                if (word.family.includes(`<li>${$(this).text()}<`)) return word.word
             }));
         });
     });
+}
+
+function createListening(set) {
+    function playSounds(word, onended) {
+        $(playSound(word, true)).each(function () {
+            this.onended = setTimeout(() => { 
+                this.play();
+                onended;
+            }, 2 * 1000);
+        });
+    }
+    $("audio").remove();
+    $(set.words).each(function (i) { 
+        let func = i == set.words.length - 1 ? null : playSounds(set.words[i+1].word)
+        playSounds(this.word, func);
+    })
 }

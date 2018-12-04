@@ -4,91 +4,61 @@
 
 function Get-Definition ($word) {
 
-    $uri = "https://en.oxforddictionaries.com/definition/us/$word"
-    $html = Invoke-WebRequest $uri
-    $document = $html.ParsedHtml.body
+    $document = Get-Html "https://en.oxforddictionaries.com/definition/us/$word"
 
-    # example and synonym are based on definition
-    $count = $document.getElementsByClassName("ind").Length
-    if ($count -eq 0) { Write-Host "See root of $word"}
-    for ($i = 0; $i -lt $count; $i++) {
-        
-        # defintion
-        $definitions += $document.getElementsByClassName("ind")[$i].outerHtml -replace "SPAN", "p"
-
-        # example
-        $example = $document.getElementsByClassName("examples")[$i]
-        if ($example) {
-            # get all sentence in this defintion and get the longest one
-            $sentences = @()
-            foreach ($sentence in $example.getElementsByClassName("ex")) {
-                $sentences += , $sentence.innerText.Substring(1,$sentence.innerText.Length -2) -replace "SPAN", "p"
-            }
-            $examples += $sentences | Sort-Object { $_.Length } | Select-Object -Last 1
-        }
-
-        # synonym
-        $synonym = $document.getElementsByClassName("exs")[$i]
-        if ($synonym) {
-            $synonyms += $synonym.outerHtml
-        }
-        
-    }
-    if ($document.getElementsByClassName("etymology")[0]) {
-        $etymology = $document.getElementsByClassName("etymology")[0].ChildNodes[1].innerHTML
+    # defintion
+    foreach ($definition in $document.getElementsByClassName("ind")) {
+        $definitions += $definition.outerHtml -replace "SPAN", "p"
     }
 
-    # get pronunciation from the free dictionary if 0xford has not
-    if (!$document.getElementsByClassName("speaker")[0]) {
-        $uri = "https://www.thefreedictionary.com/$word"
-        $html = Invoke-WebRequest $uri
-        $document = $html.ParsedHtml.body
-        $pronuciation = $document.getElementsByClassName("snd")[0].getAttribute("data-snd")
-        $sounds = "http://img.tfd.com/hm/mp3/$pronuciation.mp3"
-
-        if (!$sounds) { 
-            $pronuciation = $document.getElementsByClassName("snd2")[0]
-            $pronuciation = $pronuciation.getAttribute("data-snd")
-            $sounds = "http://img2.tfd.com/pron/mp3/$pronuciation.mp3" 
+    # example
+    foreach ($example in $document.getElementsByClassName("examples")) {
+        $sentences = @()
+        foreach ($sentence in $example.getElementsByClassName("ex")) {
+            $sentences += , $sentence.innerText -replace "[\u2018-\u2019]"
         }
+        $examples += "<p>" + ($sentences | Sort-Object Length | Select-Object -Last 1) + "</p>"
     }
-    else { $sounds = $document.getElementsByClassName("speaker")[0].ChildNodes[0].src }
-    
+
+    # synonym
+    $synonyms = "<p><b>Oxford&#a0;Dictionary</b></p>"
+    foreach ($synonym in $document.getElementsByClassName("exs")) {
+        $synonyms += $synonym.outerHtml
+    }
+
+    # etymology
+    if ($document.querySelector(".etymology")) {
+        $etymology = $document.querySelector(".etymology p").outerHTML
+    }
+
     # get synonyms from the free dictionary if Oxford has not
-    $uri = "https://www.thefreedictionary.com/$word"
-    $html = Invoke-WebRequest $uri
-    $document = $html.ParsedHtml.body
-    foreach ($item in $document.getElementsByClassName("Syn")) {
-        if ($item.tagName -ne "span" -or !$item.innerText.Contains(",")) { continue }
-        $synonyms += $item.outerHtml
-    }
-    if (!$synonyms) {
-        for ($i = 1; $i -lt $document.getElementsByClassName("Syn").Length; $i++) {
-            $item = $document.getElementsByClassName("Syn")[$i]
-            if (!$item.innerText.Contains(",") -or $item.innerText.Contains("(")) { continue }
-            $synonyms += $item.outerHtml
+    $document = Get-Html "https://www.thefreedictionary.com/$word"
+    $synonyms += "`n<p><b>The&#a0;Free&#a0;Dictionary</b></p>`n<div class=syn>"
+    foreach ($synonym in $document.querySelector("#ThesaurusInner").getElementsByClassName("Syn")) {
+        if ($synonym.innerText -notmatch "," -or $synonym.innerText -match "=") { continue }
+        $content = $synonym.innerText
+        ($synonym.innerText -split ", ").ForEach{ 
+            if ($synonyms -match ($_ -replace " \(.*?\)")) { $content = $content -replace " ?$($_)([ -]\w+)?,?" } 
         }
+        $synonyms += ($content -replace " \(.*?\)") + ","
     }
-    $synonyms = $synonyms -replace "<A.*?>(.*?)</A>", "`$1"
-    $synonyms = $synonyms -replace " <I>.*?</I>"
-    $synonyms = $synonyms -replace "((?<=>)| )(\w+([ -]\w+)+|<B>.*?</B>)(,|(?=<))"
-    $synonyms = $synonyms -replace ",(?=<)|<strong></strong>,? ?" 
-    $synonyms = $synonyms -replace "strong>", "b>"
-    $synonyms = $synonyms -replace "<div.*exs`"></div>|<div class=Syn>\(.*\)</div>|(?<=(`"|n)>) (?=\w+)"
-    $synonyms = $synonyms -replace "SPAN|div", "p"
+    $synonyms = $synonyms.TrimEnd(",") + "</div>"
+    $synonyms = $synonyms -replace "((?<=>)| )\w+([ -]\w+)+(,|(?=<))"
+    $synonyms = $synonyms -replace ",(?=<)|<strong></strong>,? ?|(?<=syn>)," 
+    $synonyms = $synonyms -replace "strong>", "b>" -replace ",{2,}", "," -replace ",(\w)", ", `$1"
+    $synonyms = $synonyms -replace "<div.*exs`"></div>|<div class=syn>\(.*\)</div>|(?<=(`"|n)>) (?=\w+)"
 
-    $etymology += "<p>"+$document.getElementsByClassName("etyseg")[0].innerHTML+"</p>"
+    $etymology += "<p>"+$document.querySelector(".etyseg").innerHTML+"</p>"
     $etymology = $etymology -replace "<A.*?>(.*?)</A>", "<b>`$1</b>"
     $etymology = $etymology -replace "(<i.*?>.*?</i>)", "<b>`$1</b>"
     $etymology = $etymology -replace "<span.*?>(.*?)</span>", "`$1"
 
-    Add-Content "C:\github\gre\notes\test.html" "`n`n$word`n$synonyms`n$etymology"
+    #Add-Content "C:\github\gre\notes\test.html" "`n`n$word`n$synonyms`n$etymology"
     New-Object PSObject -Property @{ 
         word        = $word; 
         examples    = $examples; 
         definitions = $definitions; 
-        synonyms    = $synonyms; 
-        sounds      = $sounds; 
+        synonyms    = $synonyms;
         etymology   = $etymology
     }
 
@@ -100,26 +70,24 @@ function Get-WordFamily ($word) {
         $words = @()
         $words = $members.Where{$_.Parent -eq $Parent}.Word
         if (!$words) { return }
+        if ($Parent -eq $null) {$Parent = ""}
         foreach ($word in $words) {
             $global:family = $family.Insert(($family.IndexOf($Parent) + $Parent.Length), "<ul><li>$word</li></ul>")
             Get-Children $word
         }
-        
     }
 
-    $uri = "https://www.vocabulary.com/dictionary/$word"
     $members = @()
-    $html = Get-Html $uri $word
-    $innerHTML = $html.body.getElementsByClassName("family")[0].innerHTML
+    $html = Get-Html "https://www.vocabulary.com/dictionary/$word"
+    $members = $html.querySelector("[data]").getAttribute("data") | ConvertFrom-Json
     $global:family = ""
-    if ($innerHTML) {
-        # add member
-        $regex = "`"word`":`"(?<word>.*?)`",(`"hw`":true,)?(`"parent`":`"(?<parent>.*?)`")?"
-        foreach ($match in ($innerHTML | Select-String $regex -AllMatches -CaseSensitive).Matches) {
-            $members += New-Object PSObject -Property @{ Word = $match.Groups["word"].Value; Parent = $match.Groups["parent"].Value}
-        }
+
+    Get-Children $null
+    <#if ($json) {
+        
     }
     else {
+        
         Write-Host "Manually create word family for $word"
         $ie = Invoke-InternetExplorer "https://www.vocabulary.com/dictionary/$word"
         $words = $ie.Document.IHTMLDocument3_getElementsByTagName("a").ForEach{ if ($_.className -like "*bar*" -and $_.innerText -notlike "the*family") {$_.innerText}}
@@ -134,15 +102,13 @@ function Get-WordFamily ($word) {
             while (!$parent)
             $members += New-Object -Property PSObject @{ Word = $words[$i]; Parent = $parent}
         }
-    }
-    Get-Children ""
-    Remove-Item "$PSScriptRoot\$word.html"
+    }#>
     $family
 }
 
 $words = @()
-$sets = ConvertFrom-Json ((Get-Content C:\github\js\vocabulary.js -Raw) -replace "sets = ")
-$id = "pq-easy"
+$sets = ConvertFrom-Json ((Get-Content C:\github\js\literals\words.js -Raw) -replace "sets = ")
+$id = "mp-example"
 $name = (Get-Culture).TextInfo.ToTitleCase(($id -replace "-", " "))
 $name = $name.Split(" ")[0].ToUpper() + " " + $name.Split(" ")[1]
 
@@ -171,10 +137,12 @@ else { $sets += , $set }
 $content = "sets = " + (ConvertTo-Json $sets) 
 $details = ($sets[0].words[0] | Get-Member -MemberType NoteProperty).Name
 foreach ($detail in $details) { $content = $content -replace "$detail=", "`"$detail`"`:`"" }
-$content = $content -replace ",`r`n\s+`"Count`".*`r`n}" -replace "{`r`n\s+`"value`":" 
+$content = $content -replace ",`r`n\s+`"Count`".*`r`n}|{`r`n\s+`"value`":|\\u0026lt; "
 $content = $content -replace "; `"", "`", `"" -replace "`"@{", "{" -replace "}`"", "`"}"
+$content = $content -replace "`"(\w+)`":", "`$1:" -replace "\\u003e", ">" -replace "\\u003c", "<"
+$content = $content -replace "\\u0027", "'"
 
-Set-Content C:\github\js\vocabulary.js $content -Encoding UTF8
+Set-Content C:\github\js\literals\words.js $content -Encoding UTF8
 
 <#
 function Get-Etymology ($word) {

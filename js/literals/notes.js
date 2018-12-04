@@ -3,7 +3,7 @@ notes = [
 
     //#region Programming
     {
-        href: "programming/css.html",
+        href: "programming/languages/css.html",
         tags: ["CSS", "Programming"]
     },
     {
@@ -11,15 +11,15 @@ notes = [
         tags: ["Git", "Programming"]
     },
     {
-        href: "programming/html.html",
+        href: "programming/languages/html.html",
         tags: ["HTML", "Programming"]
     },
     {
-        href: "programming/javascript.html",
+        href: "programming/languages/javascript.html",
         tags: ["JavaScript", "Script", "Programming"]
     },
     {
-        href: "programming/powershell.html",
+        href: "programming/languages/powershell.html",
         tags: ["PowerShell", "Script", "Programming"]
     },
     {
@@ -27,7 +27,7 @@ notes = [
         tags: ["Setup", "Script", "Programming"]
     },
     {
-        href: "programming/vba.html",
+        href: "programming/languages/vba.html",
         tags: ["VBA", "Script", "Programming"]
     },
     {
@@ -44,6 +44,10 @@ notes = [
     {
         href: "bookmarks.html",
         tags: ["Bookmarks", "Others"]
+    },
+    {
+        href: "to-do.html",
+        tags: ["To Do", "Others"]
     },
     //#endregion
 

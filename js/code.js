@@ -29,7 +29,7 @@ function highlightJS() {
     
         $("code").each(function () {
             //hljs.highlightBlock(this);
-            $(this).addClass("w3-light-gray").css("display","unset");
+            $(this).addClass("w3-light-gray").css({display:"unset"});
         });
         setStyle();
     });

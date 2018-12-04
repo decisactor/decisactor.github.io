@@ -70,13 +70,13 @@ function filterSearch(searchBtn, func, nodes) {
     }
 
     if (searchBtn.is(".my-border")) {
-        searchBtn.html("Search").css("border", "none")
+        searchBtn.html("Search").css({border: "none"})
         input.val("");
         $(".my-tag", tagsDiv).show();
         if ($("#words").length) $("#words").html("");
     } else {
         searchBtn.html("X");
-        input.css("border", `2px solid ${bgColor}`);
+        input.css({border: `2px solid ${bgColor}`});
     }
 
     input.toggle();
@@ -173,7 +173,7 @@ function addTags() {
             class: "my-highlight w3-large my-link",
             href: getLink(),
             html: getTitle()
-        }).appendTo(titleDiv).css("padding",0);
+        }).appendTo(titleDiv).css({padding:0});
 
         let tagDiv = $("<div>").appendTo(div);
         $("<span>", {

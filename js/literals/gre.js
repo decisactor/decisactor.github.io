@@ -39,7 +39,7 @@ links = [{
     name: "mp",
     sets: [{
         name: "Example",
-        links: ["Issue", "Argument", ]
+        links: ["Issue", "Argument", "Verbal"]
     }, {
         name: "Practice Sets",
         count: "6",
