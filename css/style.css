@@ -100,6 +100,15 @@
   background: white;
 }
 
+.my-sticky {
+  position: sticky;
+  position: -webkit-sticky;
+  position: -moz-sticky;
+  position: -ms-sticky;
+  position: -o-sticky;
+  top: 0
+}
+
 /* My link style */
 .my-link:link,
 .my-link:visited {
@@ -111,8 +120,6 @@
   text-decoration: underline;
 }
 
-/* My Margin Small */
-
 .my-margin-small {
   margin: 4px;
 }
@@ -121,16 +128,14 @@
   margin: 8px;
 }
 
-/* The sticky class is added to the tagDiv with JS when it reaches its scroll position */
-.my-fixed {
-  position: fixed;
-  top: 0;
-  z-index: 1;
-}
-
 .my-padding {
   padding: 8px 16px !important;
   /* w3-padding-small */
+}
+
+.my-section {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
 }
 
 .my-button,
@@ -157,13 +162,12 @@
   color: blueviolet;
 }
 
-.my-number,
+.my-option,
 .my-object,
 .my-attribute {
   color: orange;
 }
 
-.my-option,
 .my-string {
   color: limegreen;
 }

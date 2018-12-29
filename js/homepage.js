@@ -68,4 +68,5 @@ function showHomepage() {
         }).appendTo(parent)).width(this.percent);
     
     });
+    setStyle();
 }

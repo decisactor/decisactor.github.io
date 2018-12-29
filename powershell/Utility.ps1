@@ -194,10 +194,25 @@ function Update-Entity {
 }
 
 function Get-Html {
-    Param($Uri)  
+    Param($Uri, $Save)  
     
     $html = New-Object -ComObject "HTMLFile"
-    $string = Invoke-RestMethod $Uri
+    
+    if ($Uri -match "^http") {
+        $directory = "C:\GitHub\temp\html\$($Uri.Split('/')[2])"
+        New-Item $directory -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+        $file = "$directory\$($Uri.Split('/')[-1]).html"
+        if (Test-Path $file) {
+            $string = Get-Content $file -Raw
+        }
+        else {
+            $string = Invoke-RestMethod $Uri
+            Set-Content $file $string
+        }
+    }
+    else {
+        $string = $Uri
+    }
     $string = $string -replace "<head>(.*\n)*.*</head>"
     $string = $string -replace "<section", "<div" -replace "/section>", "/div>"
     $src = [System.Text.Encoding]::Unicode.GetBytes($string)
@@ -219,13 +234,13 @@ function Send-Keys {
 
 function Submit-Website {
     
-    Param($Uri, $selector, $credential)
+    Param($Uri, $selector)
     $ie = Start-InternetExplorer $Uri
 
     # Get Account, Password Input and SignIn Button, fill in and sig in
     $signInButton = $null
     while($ie.Busy) { Start-Sleep -Milliseconds 1000 }
-    while($signInButton -eq $null) {$signInButton = $ie.Document.querySelector($selector.signin)}
+    while(!$signInButton) {$signInButton = $ie.Document.querySelector($selector.signin)}
     $ie.Document.querySelector($selector.account).value = $credential.account
     $ie.Document.querySelector($selector.password).value = $credential.account
     $ie.Document.querySelector($selector.signin).click()

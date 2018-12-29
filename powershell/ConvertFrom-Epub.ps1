@@ -8,7 +8,7 @@ function Expand-Epub {
     Remove-Item "$Destination.zip"
 }
 
-(Get-ChildItem "$env:USERPROFILE\Box Sync\GRE Books\*.epub").ForEach{
+(Get-ChildItem "$HOME\Downloads\GRE Books\*.epub").ForEach{
     $folder = "C:\github\temp\ebooks"
     $dir = $_.BaseName -replace "\.", " "
     if (!(Test-Path "$folder\$dir")) {

@@ -10,7 +10,7 @@ function addFilterClick(selector, classes, parent) {
         $(this).on("click", () => {
             $(selector).each(function () {
                 $(this).removeClass(classes.join(" "));
-                if (classes.includes("my-highlight") && !selector.includes("#tagsDiv")) removeHighlight($(this));
+                if (classes.includes("my-highlight") && !selector.match("#tagsDiv")) removeHighlight($(this));
             });
 
             $(this).addClass(classes.join(" "));
@@ -20,7 +20,7 @@ function addFilterClick(selector, classes, parent) {
 }
 
 function createSearchBtn(parent, className, func, nodes) {
-    return $("<button>", {
+    let searchBtn = $("<button>", {
         id: "searchBtn",
         class: className,
         html: "Search"
@@ -28,6 +28,16 @@ function createSearchBtn(parent, className, func, nodes) {
         // Unselected Tag
         filterSearch($(this), func, nodes);
     });
+
+    // Create Search Input
+    className = searchBtn.attr("class").replace(new RegExp(`${color}|w3-(button|btn)`, "g"), "");
+    input = $("<input>", {
+        class: `${className} w3-white w3-bar-item my-border`,
+        id: "search",
+        autofocus: true
+    }).appendTo(parent).hide();
+    return searchBtn;
+    
 }
 
 function createTag(innerHTML, parent, func) {
@@ -45,7 +55,7 @@ function createTag(innerHTML, parent, func) {
 function filterNodes(value, nodes) {
     nodes = nodes ? nodes : $(".my-tag", tagsDiv);
     nodes.each(function () {
-        if ($(this).html().includes(value)) {
+        if ($(this).html().match(value)) {
             $(this).show();
         } else {
             $(this).hide();
@@ -58,16 +68,6 @@ function filterSearch(searchBtn, func, nodes) {
     let parent = searchBtn.parent();
     let tagsDiv = parent.next();
     let input = $("#search");
-
-    // Create Search Input
-    if (!input.length) {
-        let className = searchBtn.attr("class").replace(new RegExp(`${color}|w3-(button|btn)`, "g"), "");
-        input = $("<input>", {
-            class: `${className} w3-white w3-bar-item my-border`,
-            id: "search",
-            autofocus: true
-        }).appendTo(parent).hide();
-    }
 
     if (searchBtn.is(".my-border")) {
         searchBtn.html("Search").css({border: "none"})
@@ -137,7 +137,6 @@ function toggleFilter(tagBtn) {
             }); 
         }
 
-        
     }); 
 
 }
@@ -149,7 +148,7 @@ function addTags() {
 
         function getTitle() {
             let title;
-            if (entry.tags.includes("Products")) title = entry.tags[0] + " Products";
+            if (entry.tags.includes("Products")) title = `${entry.tags[0]} Products`;
             else if (!entry.href.match("wikipedia")) title = entry.tags[0];
             else title = entry.href.split("/").splice(-1)[0].replace(/_/g," ").replace(/.* of /,"");
             return title;
@@ -161,12 +160,19 @@ function addTags() {
             else href = entry.href
             return href;
         }
-
+        
         let div = $("<div>", {
-            class: "w3-card-4 w3-padding w3-left my-margin my-entry"
-        }).appendTo($("#entries"));
+            class: "w3-card-4 w3-padding w3-left my-margin my-entry w3-col l4"
+        }).appendTo($("#entries")).css({
+            width: () => {
+                if (mobileFlag) return "-webkit-fill-available";
+                else return "32%";
+            }
+        });
+
+        // title
         let titleDiv = $("<div>", {
-            class: "w3-section"
+            class: "my-section"
         }).appendTo(div);
 
         $("<a>", {
@@ -175,11 +181,8 @@ function addTags() {
             html: getTitle()
         }).appendTo(titleDiv).css({padding:0});
 
+        // tags
         let tagDiv = $("<div>").appendTo(div);
-        $("<span>", {
-            class: "my-highlight",
-            html: "Tags:"
-        }).appendTo(tagDiv);
 
         $(entry.tags).each(function () {
             createTag(this, tagDiv, toggleFilter);
@@ -187,7 +190,7 @@ function addTags() {
     }
 
     // create tagsDiv
-    let div = $("#tags");
+    let div = $("#tags").addClass("my-margin");
     $("<div>", {
         class: "w3-bar w3-padding-small w3-card w3-large my-color"
     }).appendTo(div).html(`<span class="w3-bar-item my-padding">Tags</span>`);
@@ -195,7 +198,7 @@ function addTags() {
         class: "w3-padding w3-card",
         id: "tagsDiv"
     }).appendTo(div);
-
+    
     // Get Entries Object
     var regexp = new RegExp("\\w+(?=\.html)");
     if (uri.match(regexp) == "bookmarks") { entries = bookmarks}
@@ -226,4 +229,5 @@ function addTags() {
 
     // article tag
     $("a.my-tag").each(function () { this.onclick = () => sessionStorage.setItem("tag", this.text()) })
+
 }

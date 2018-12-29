@@ -4,7 +4,7 @@ $set = "be"
 $name = "$set-dt-verbal" 
 $type = "txt"
 $ebooks = "C:\github\temp\ebooks"
-$testHtml = "C:\github\temp\files\html\test.html"
+$testHtml = "C:\github\temp\test.html"
 $path = "C:\github\gre\$set\$name.$type"
 $prepositions = "\b(about|across|after|against|along|and|around|at|between|by|down|for|from|in|into|of|off|on|onto|over|through|to|toward|under|up|with)\b"
 
@@ -94,7 +94,6 @@ function ConvertFrom-Epub {
         }
         if ($oldText) { $content = $content -replace $oldText, "________" }
 
-        Set-Content "C:\github\temp\files\html\ebook.html" $content -Encoding UTF8
         Set-Content $testHtml $content -Encoding UTF8
         [xml]("<b>$content</b>")
     }
@@ -160,7 +159,7 @@ function ConvertFrom-Epub {
             $questionsDiv = (Select-Xml "//div[@id='questions']" $html).Node
         }
         else {
-            $html = [xml](Get-Content "C:\github\temp\files\html\temp.html")
+            $html = [xml](Get-Content "C:\github\temp\temp.html")
             $questionsDiv = Add-XmlNode ("div", @{id = "questions"}) (Select-Xml "//main" $html).Node
         }
     
@@ -206,7 +205,7 @@ function ConvertFrom-Epub {
                     $choice = $question
                     while ( !(Test-Choice) ) { $choice = $choice.NextSibling }
                 }
-                $count = (Get-RegExMatch (Get-Content "C:\github\temp\files\html\ebook.html") (Test-Image)).Count
+                $count = (Get-RegExMatch (Get-Content "C:\github\temp\test.html") (Test-Image)).Count
 
                 if ($choice.OuterXml -match "multicol|multiple-" -or (Select-Xml ".//img | li" $choice).Count -gt 1) { 
                     $choice = if($choice.OuterXml -match "multicol") { 

@@ -1296,7 +1296,7 @@ $global:time = @("45", "60", "60"), @("15", "30", "20")
 $global:sets = "TPO" 
 $global:setsLength = if ($sets -eq "OG") {3} else {5} # folder name length
 
-$global:xmlPath = "$env:USERPROFILE\Downloads\ETS\TOEFL Programs\Sampler\forml1"
+$global:xmlPath = "$HOME\Downloads\ETS\TOEFL Programs\Sampler\forml1"
 $global:htmlPath = "C:\github\toefl\$($sets.ToLower())"
 $global:idmExe = "C:\Program Files (x86)\Internet Download Manager\IDMan.exe"
 $global:switchExe = "C:\Program Files (x86)\NCH Software\Switch\switch.exe"
@@ -1329,7 +1329,7 @@ for ($n = 54; $n -le 54; $n++)
 #Update-SamplerXml 
 #Update-Audio #"test"
 <#
-    $files = Get-ChildItem "$env:USERPROFILE\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO*Q*.xml"
+    $files = Get-ChildItem "$HOME\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO*Q*.xml"
     foreach($file in $files) {
         continue
         $xml = [xml] (Get-Content $file)
@@ -1339,7 +1339,7 @@ for ($n = 54; $n -le 54; $n++)
         if (!$innerText -or $innerText.length -lt 40 -or ($previous -and $innerText.TrimEnd(".") -eq $previous.TrimEnd("."))) { $file.Name }
     }
 
-    $files = Get-ChildItem "$env:USERPROFILE\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO????.xml"
+    $files = Get-ChildItem "$HOME\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO????.xml"
     foreach($file in $files) {
         $xml = [xml] (Get-Content $file)
         $innerText = (Select-Xml "//Category" $xml).Node.InnerText
@@ -1347,7 +1347,7 @@ for ($n = 54; $n -le 54; $n++)
     }
 
 $explanations = @()
-$files = Get-ChildItem "$env:USERPROFILE\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO*Q*.xml"
+$files = Get-ChildItem "$HOME\Downloads\ETS\TOEFL Programs\Sampler\forml1\TPO*\*\TPO*Q*.xml"
 foreach($file in $files) {
     $xml = [xml] (Get-Content $file)
     $innerText = (Select-Xml "//Explanation" $xml).Node.InnerText

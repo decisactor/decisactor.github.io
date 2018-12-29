@@ -1,4 +1,3 @@
-
 var setFlag = uri.match(/ing\d\.html/);
 var num = +uri.match(/\d(?=\.html)/);
 var sections = [{
@@ -33,17 +32,9 @@ function setArticleHeight(height) {
 // Reading Question
 function showSpecialQuestion(article, section) {
     question = $(".question", section)
-    /**
-     * $("span", article).each(function () {
-        if (elem.className.includes("question")) {
-            removeHighlight(elem);
-        }
-    });
-     */
 
-
-    if (/paragraph \d/.exec(question.text())) {
-        let para = /paragraph \d/.exec(question.text())[0].slice(-1);
+    if (question.text().match(/paragraph \d/)) {
+        let para = question.text().match(/paragraph \d/)[0].slice(-1);
         let paragraph = $("p", article).eq(para - 1);
         paragraph[0].scrollIntoView();
     }
@@ -84,13 +75,15 @@ function showSpecialQuestion(article, section) {
     let highlight = $(`.${id}`);
     if (highlight.length) {
         highlight.children().each(function () {
-            this.css({color: bgColor});
+            this.css({
+                color: bgColor
+            });
         });
         addHighlight(highlight);
         highlight.scrollIntoView();
         article.scrollTop(article.scrollTop() - (screen.height - section[0].offsetHeight) / 2 + 64)
         //index = parseInt(section.children[0].text().split(".")[0]) - 1;
-        if (question.text().includes("best expresses the essential")) {
+        if (question.text().match("best expresses the essential")) {
             $(".my-highlight", highlight).each(function () {
                 addHighlight($(this))
             });
@@ -128,7 +121,7 @@ function addTextarea(parent) {
 
     return $("<textarea>", {
         class: "my-border w3-padding w3-block"
-    }).appendTo(parent).css({height: `${window.innerHeight}px`}).on("input", function () {
+    }).appendTo(parent).height(window.innerHeight).on("input", function () {
         wordCount.html(`Word Count: ${getAllIndexes(this.value, " ").length + 1}`)
     });
 }
@@ -158,8 +151,8 @@ function startTest() {
             if (timer < 0) {
                 return
             }
-            let secStr = sec < 10 ? "0" + sec.toString() : sec.toString();
-            if (time.length) time.html(min.toString() + ":" + secStr);
+            let secStr = sec < 10 ? `0${sec.toString()}` : sec.toString();
+            if (time.length) time.html(min.toString() + `:${secStr}`);
             timer--;
             setTimeout(() => startTimer(), 1000);
         }
@@ -239,8 +232,8 @@ function startTest() {
     }
 
     function navigateQuestion(button, question) {
-        let id = /\d+/.exec(question[0].id)[0];
-        index = Math.abs(button.text() == "Next" ? +id + 1: +id - 1);
+        let id = question[0].id.match(/\d+/)[0];
+        index = Math.abs(button.text() == "Next" ? +id + 1 : +id - 1);
         setAnswer(question);
 
         if (id == questions.length) {
@@ -251,7 +244,7 @@ function startTest() {
     }
 
     function setAnswer(question) {
-        let index = /\d+/.exec(question[0].id)[0] - 1;
+        let index = question[0].id.match(/\d+/)[0] - 1;
         let answer = $(".explanation", question).data("answer");
         let flag;
 
@@ -267,7 +260,7 @@ function startTest() {
                     const element = inputs[j];
                     if (element.checked) {
                         myAnswer[id - 1] += String.fromCharCode(65 + j);
-                        
+
                     }
                     flag = true;
                 });
@@ -278,7 +271,7 @@ function startTest() {
                     myAnswer[id - 1] += "N";
                 }
             }
-            if (uri.includes("reading")) {
+            if (uri.match("reading")) {
                 let category = answer.split("@");
                 let keys = new Array(answer.length + 1);
                 answer = ""
@@ -321,9 +314,9 @@ function startTest() {
                 }).appendTo(testDiv)[0].click();
             }
 
-            if (uri.includes("speaking")) {
+            if (uri.match("speaking")) {
                 downloadResponse(audioURL, html.replace(".html", "-recording.mp3"));
-            } else if (uri.includes("writing")) {
+            } else if (uri.match("writing")) {
                 let text = $("textarea").value.replace("\n", "</p><p>", testDiv);
                 text = `<p>${text}</p>`
 
@@ -341,7 +334,7 @@ function startTest() {
             }
         }
 
-        if ((/-speaking|-writing/).exec(uri)) {
+        if (uri.match(/-speaking|-writing/)) {
             modal = createModal();
             p = $("<p>").appendTo(modal);
         } else {
@@ -378,7 +371,7 @@ function startTest() {
             modal.parent().remove();
         });
 
-        if (uri.includes("speaking")) {
+        if (uri.match("speaking")) {
             p.html($("audio", testDiv).outerHTML)
         }
         modal.parent().show();
@@ -420,7 +413,7 @@ function startTest() {
 
             tr = $("<tr>").appendTo(tbody).click(() => {
                 modal.parent().remove();
-                showQuestion(i+1);
+                showQuestion(i + 1);
             });
 
             $("<td>", {
@@ -433,7 +426,7 @@ function startTest() {
             });
 
             $("<td>", {
-                html: question ? myAnswer[i] : checkAnswer(i) 
+                html: question ? myAnswer[i] : checkAnswer(i)
             }).appendTo(tr);
         });
 
@@ -477,7 +470,7 @@ function startTest() {
         // Start observing the target node for configured mutations
         new MutationObserver(callback).observe(time[0], {
             childList: true // Options for the observer (which mutations to observe)
-        }); 
+        });
 
         $("<button>", {
             class: `${color} w3-btn w3-right`,
@@ -495,10 +488,10 @@ function startTest() {
 
         // Review Button
         $("<button>", {
-                class: `${color} w3-btn w3-block`,
-                id: "review",
-                html: "Review Questions"
-            }).appendTo(questionDiv).click(function () {
+            class: `${color} w3-btn w3-block`,
+            id: "review",
+            html: "Review Questions"
+        }).appendTo(questionDiv).click(function () {
             reviewQuestions(question);
         });
         $("button", div).each(function () {
@@ -513,7 +506,9 @@ function startTest() {
         } else { // Reading Comprehension
 
             if (mobileFlag) {
-                questionDiv.css({borderTop: `3px solid ${bgColor}`});
+                questionDiv.css({
+                    borderTop: `3px solid ${bgColor}`
+                });
                 setArticleHeight(screen.height - questionDiv[0].offsetHeight + 40 + "px");
 
             } else {
@@ -523,7 +518,7 @@ function startTest() {
             }
         }
 
-        if (!greFlag && !uri.includes("test.html")) showSpecialQuestion(passageDiv, questionDiv);
+        if (!greFlag && !uri.match("test.html")) showSpecialQuestion(passageDiv, questionDiv);
 
 
         // select sentence question
@@ -539,13 +534,15 @@ function startTest() {
         // click Options
         if (myAnswer[index - 1]) {
             options = myAnswer[index - 1];
-            
+
             $(options.split("")).each(function () {
                 if (options.length > 4) {
                     option = this.charCodeAt(0) - 65;
                     if (option !== 13) {
                         let elem = inputs[i * 2 + option].parentNode;
-                        $(".my-checkbox", elem).css({backgroundColor: bgColor});
+                        $(".my-checkbox", elem).css({
+                            backgroundColor: bgColor
+                        });
                         elem.children[0].checked = true;
                     }
                 } else {
@@ -567,11 +564,11 @@ function startTest() {
     toggleElement();
     passageDiv = $("<article>", {
         class: "w3-half w3-section",
-        id : "passage"
+        id: "passage"
     }).appendTo(testDiv);
     questionDiv = $("<section>", {
         class: "w3-half",
-        id : "question"
+        id: "question"
     }).appendTo(testDiv);
     time = $("<p>", {
         id: "time",
@@ -579,28 +576,28 @@ function startTest() {
     }).appendTo(testDiv);
     if (greFlag) {
 
-        if ((/issue|argument/).exec(uri)) {
+        if (uri.match(/issue|argument/)) {
             passageDiv.html($("#question").html());
             addTextarea(questionDiv);
             waitTime(1800, showModal);
         } else {
-            function getCountDown() {
+            function getCountdown() {
                 if (questions.length == 25) countdown = 2100
                 else if (questions.length == 20) countdown = 1800
                 else {
-                    ((1 + 1.5 + 2) * 2) + (1.25 * 4) + 10 + (1 + 1.5 + 2 + 2.5)
-                    
+                    countdown = Math.ceil($('[data-passage]').length * 1.75 + $('#questions > [data-choice-type]:not([data-passage])').length * 1.25) * 60
                 }
+                return countdown
             }
             waitTime(getCountdown(), showModal);
             showQuestion(1);
         }
-    } else if (uri.includes("reading")) {
+    } else if (uri.match("reading")) {
 
         waitTime(1200, showModal);
         showQuestion(1);
 
-    } else if (uri.includes("listening")) {
+    } else if (uri.match("listening")) {
         article.toggleClass("w3-half");
         let button = $("<button>", {
             class: `${color} w3-btn w3-block w3-section w3-hide`,
@@ -625,8 +622,7 @@ function startTest() {
                 });
             }
 
-            const element = questions[index];
-            if (element.className.includes("replay")) {
+            if ($(questions[index]).hasClass("replay")) {
                 article.html() = "<p>Listen again to part of the lecture. Then answer the question.</p>"
                 button.hide();
                 time.hide();
@@ -642,7 +638,7 @@ function startTest() {
             showQuestion(1);
         })
 
-    } else if (uri.includes("speaking")) {
+    } else if (uri.match("speaking")) {
         if (uri.startsWith("file:/")) {
             mediaRecorder = recordAudio();
         }
@@ -700,7 +696,7 @@ function startTest() {
                 waitTime(45, playListening);
             });
         }
-    } else if (uri.includes("writing")) {
+    } else if (uri.match("writing")) {
         addTextarea(section);
         if (num == 1) {
             article.html() = reading.html()
@@ -730,105 +726,39 @@ function startTest() {
     setStyle();
 }
 
-function addDropDown(element, length, parent) {
-    if (mobileFlag) {
-        let dropdown = $("<div>", {
-            class: "w3-dropdown-click"
-        }).appendTo(parent);
-        $("<button>", {
-            class: "w3-bar-item w3-button w3-padding-small my-color",
-            html: element
-        }).appendTo(dropdown);
-        dropdownContent = $("<div>", {
-            class: "w3-dropdown-content w3-bar-block w3-card"
-        }).appendTo(dropdown);
-    }
-    for (let i = 1; i <= length; i++) {
-        let href;
-        if (uri.includes("essay")) {
-            let count = 0;
-            let index = topics.findIndex(topic => topic.name == element);
-            for (let j = 0; j < index; j++) {
-                count += topics[j].count;
-            }
-            href = `topic${index+1}-${count+i}.html`;
-        } else {
-            href = set + `-${element.toLowerCase() + i}.html`;
-            href = !setFlag ? `${set}/${href}` : `${set.split("-")[0]}-${element.toLowerCase() + i}.html`;
-        }
-
-        if (mobileFlag) {
-            dropdownContent.css({marginTop: "32px"});
-            innerHTML = uri.includes("essay") ? `<b>Essay ${i}</b>` : element + " " + i;
-            $("<a>", {
-                class: "w3-bar-item w3-btn",
-                href: href,
-                html: innerHTML
-            }).appendTo(dropdownContent);
-        } else {
-
-            if (uri.includes("essay")) {
-                innerHTML = `Essay ${i}`;
-            } else {
-                type = element.replace("ing", "").replace("Writ", "Write");
-                innerHTML = type + " " + i
-            }
-            let a = $("<a>", {
-                class: `${color} w3-padding-small w3-button`,
-                href: href,
-                html: innerHTML
-            }).appendTo(parent);
-            if (uri.includes("essay")) a.addClass("my-margin-small")
-        }
-    }
-
-    $(".w3-dropdown-click button").each(function () {
-        button.click(function () {
-            $(".w3-dropdown-content").each(function () {
-                $(this).hide()
-            });
-            this.nextElementSibling.toggle();
-        });
-    });
-
-}
-
 // Add Category Filter for test set page
 function addCategoryFilter() {
-    addScripts(["categories"]);
+
     let length;
 
     if (setFlag) {
         length = 1;
     } else {
         let number = $("#number");
-        if (number) {
+        if (number.length > 0) {
             length = +number.text();
         } else {
             length = 4;
         }
     }
-    var sets = html.split(".")[0];
+    var sets = html;
 
-    //let before = html.includes("og") ? true : false;
     setsDiv = $("<div>", {
-        class: "",
         id: "setsDiv"
-    }).appendTo(main, true);
+    }).prependTo(main);
 
     // add sets
     for (let i = 1; i <= length; i++) {
-        let number = (i < 10 && !html.includes("og") ? "0" + i : i);
+        let number = (i < 10 && !html.includes("og") ? `0${i}` : i);
         set = setFlag ? sets : sets + number;
         div = $("<div>", {
             class: "w3-bar w3-section"
-        }).appendTo(setsDiv);
-        if (!setFlag) {
-            div.css({fontSize: "13px"});
-        }
-        if (!mobileFlag) {
-            div.css({fontSize: "14px"});
-        }
+        }).appendTo(setsDiv).css({
+            fontSize: () => {
+                if (!setFlag) return "13px"
+                if (!mobileFlag) return "14px"
+            }
+        });
         if (!setFlag) {
             $("<span>", {
                 class: "w3-bar-item w3-btn w3-padding-small my-color",
@@ -836,27 +766,34 @@ function addCategoryFilter() {
             }).appendTo(div);
         }
 
-        $(sections).each(function (i) {
-            addDropDown(sections[i].type, sections[i].length, div);
+        $(sections).each(function () {
+            addDropDown(this.type, this.length, div);
         });
     }
 
-
-
     if (setFlag) { // Add category Button
-        categories[html.match(/\w+(?=\d\.html)/)[0]].each(function () {
-            category.hrefs.each(function () {
-                if (html.match(href)) {
-                    tag = category.category;
+        $(categories[html.match(/\w+(?=\d$)/)]).each(function () {
+            let category = this.category
+            $(this.links).each(function () {
+                if (this.toString().match(html)) {
+                    tag = category;
                 }
             });
         });
         href = `../${uri.split("/").slice(-3)[0]}.html`
         categoryBtn = $("<a>", {
-            class: `${color} w3-btn w3-section w3-left`,
+            class: `${color} w3-btn w3-section`,
             href: href,
-            html: `See ${tag} Questions`
-        }).appendTo(div);
+            html: `${tag}`
+        }).appendTo(div).addClass(() => {
+            if (mobileFlag) return 'w3-left'
+        }).click(() => {
+            tag = {
+                tag: tag,
+                href: html
+            }
+            sessionStorage.setItem("tag", JSON.stringify(tag));
+        });
 
         if (testFlag) testBtn = $("<button>", {
             class: `${color} w3-btn w3-section w3-right`,
@@ -864,14 +801,6 @@ function addCategoryFilter() {
             html: "Test"
         }).appendTo(div);
 
-
-        categoryBtn.click(function () {
-            tag = {
-                "tag": tag,
-                "href": html
-            }
-            sessionStorage.setItem("tag", JSON.stringify(tag));
-        });
 
     } else { // Add Category tags
         function filterSet(category) {
@@ -882,51 +811,52 @@ function addCategoryFilter() {
             });
 
             let setDiv = $("#setDiv");
-            if (!setDiv) {
+            if (setDiv.length <= 0) {
                 setDiv = $("<div>", {
                     class: "w3-section",
                     id: "setDiv"
-                }).appendTo($("#setsDiv"), true);
+                }).prependTo($("#setsDiv"));
             }
 
-            setDiv.classList.remove("w3-hide");
+            setDiv.show();
             setDiv.html("");
 
             $("#setsDiv a").each(function () {
-                if (category.hrefs.includes(a.href.split("/").splice(-1)[0])) {
-                    innerText = a.href.split("/").slice(-2)[0].toUpperCase() + " " + a.text();
+                if (category.links.includes(this.href.split("/").splice(-1)[0])) {
+                    innerText = `${this.href.split("/").slice(-2)[0].toUpperCase()}  ${$(this).text()}`;
                     $("<a>", {
                         class: `${color} w3-left w3-button w3-padding-small my-margin-small`,
-                        href: a.href,
+                        href: this.href,
                         html: innerText
                     }).appendTo(setDiv);
                 }
             })
         }
 
-        categoryDiv = $("<div>").appendTo(main, true);
+        categoryDiv = $("<div>").prependTo(main).css({
+            fontSize: () => {
+                if (mobileFlag) return "13px"
+            }
+        });
 
         div = $("<div>", {
             class: "w3-bar w3-card my-color"
         }).appendTo(categoryDiv);
-        if (mobileFlag) {
-            categoryDiv.css({fontSize: "13px"});
-        }
 
         // sections category
-        $(sections).each(function (i) {
+        $(sections).each(function () {
             button = $("<button>", {
                 class: "w3-bar-item w3-button w3-col l2 my-color w3-hide w3-show",
-                html: sections[i].type
-            }).appendTo(div);
-            if (mobileFlag) {
-                button.removeClass("l2").addClass("w3-padding-small");
-            }
-            button.click(function () {
+                html: this.type
+            }).appendTo(div).removeClass(() => {
+                if (mobileFlag) return "l2"
+            }).addClass(() => {
+                if (mobileFlag) return "w3-padding-small"
+            }).click(function () {
                 categoryDiv.html("");
-                categories[$(this).text().toLowerCase()].each(function () {
-                    createTag(category.category, categoryDiv, () => {
-                        filterSet(category)
+                $(categories[$(this).text().toLowerCase()]).each(function () {
+                    createTag(this.category, categoryDiv, () => {
+                        filterSet(this)
                     });
                 });
                 addFilterClick("#tagsDiv button", ["my-highlight", "w3-text-white", color], tagsDiv);
@@ -945,21 +875,16 @@ function addCategoryFilter() {
 
         if (tag) {
             tag = JSON.parse(sessionStorage.tag);
-            sections.each(function (i) {
-                const button = $("div .w3-bar-item.w3-button")[i];
-                if (tag.href.includes(button.text().toLowerCase())) {
+            $(sections).each(function (i) {
+                var button = $($("div .w3-bar-item.w3-button")[i]);
+                if (tag.href.match(button.text().toLowerCase())) {
                     button.click();
-                    categoryDiv.children.each(function () {
-                        const tagBtn = categoryDiv.children[i];
-                        if (tag.tag == tagBtn.text()) {
-                            tagBtn.click();
+                    categoryDiv.children().each(function () {
+                        if (tag.tag == $(this).text()) {
+                            this.click();
                             sessionStorage.removeItem("tag");
-                        
                         }
                     });
-                }
-                if (!sessionStorage.tag) {
-                    
                 }
             });
         }
@@ -974,11 +899,10 @@ function createQuestion(question) {
     // Show Reading Comprehension question related passage if exist
     if (greFlag) {
         passageDiv.html($(`#${question.data("passage")}`).html());
-        if ($(`span[data-question="${question.attr("id")}"]`).length > 0) 
-        addHighlight($(`span[data-question="${question.attr("id")}"]`));
-        
-    }
-    else {
+        if ($(`span[data-question="${question[0].id}"]`).length > 0)
+            addHighlight($(`span[data-question="${question[0].id}"]`));
+
+    } else {
         passageDiv.html($(".passage").html());
     }
 
@@ -999,7 +923,6 @@ function createQuestion(question) {
         choiceDiv = $("<div>", {
             class: "w3-padding-small w3-left"
         }).appendTo(choicesDiv);
-        //if (question.className.includes("text")) choiceDiv.className += " w3-left"
 
         $(this).children().each(function () {
             createChoiceInput(choiceDiv, choiceType, $(this).text(), choiceType + i)
@@ -1010,8 +933,8 @@ function createQuestion(question) {
 function addSentence(article) {
     let passage = article.html().replace(". . . ", "&#8230; ")
     passage = passage.replace(/\s{2,}</g, "<")
-    passage = passage.replace(/(\w{2,}[?!\.])\s{1}/g, "$1</span><span class=\"sentence\"> ")
-    passage = passage.replace(/<p>/g, "<p><span class=\"sentence\"> ")
+    passage = passage.replace(/(\w{2,}[?!\.])\s{1}/g, `$1</span><span class="sentence"> `)
+    passage = passage.replace(/<p>/g, `<p><span class="sentence"> `)
     passage = passage.replace(/<\/p>/g, "</span></p>")
     article.html(passage);
     return article;
@@ -1023,7 +946,7 @@ function updateQuestionUI() {
 
         let div = $("<div>", {
             class: "w3-section",
-            id:"practice"
+            id: "practice"
         }).appendTo(main);
         var pageBar = $("<div>", {
             class: "w3-bar"
@@ -1041,7 +964,7 @@ function updateQuestionUI() {
                 class: `${color} my-page`,
                 html: i + 1
             }).appendTo(pageBar).click(function () {
-                let id = "question" + $(this).text();
+                let id = `question${$(this).text()}`;
                 let question = $(`#${id}`);
 
                 createQuestion(question);
@@ -1054,69 +977,76 @@ function updateQuestionUI() {
                     class: `${color} w3-btn`,
                     html: "Show Answer"
                 }).appendTo(div).click(function () {
-                    let explanation = $(".explanation", question);
+                    var explanation = $(".explanation", question);
                     var answers = explanation.data("answer");
                     explanation = $("<div>", {
-                        class: "",
-                        id: "answer",
                         html: `<p><b>${answers}</b></p>` + explanation.html()
                     }).appendTo($(`#question`));
-
 
                     $("em, i", explanation).each(function () {
                         addHighlight($(this))
                     });
 
                     // Click Choices
-
                     if (answers.length > 9) {
                         article = addSentence($("#passage"));
                         var index;
-                        $(".sentence", article).each( function (i) {
-                            if (this.innerText.includes(answers)) { 
+                        $(".sentence", article).each(function (i) {
+                            if ($(this).text().includes(answers)) {
                                 index = i;
                                 return;
-                            } 
+                            }
                         });
-
                         addHighlight($($(".sentence", article)[index]));
                     } else {
-                        $(answers.split("")).each(function () {
-                            $("#question input").eq(this.charCodeAt(0) - 65)[0].click();
+                        $(answers.split("")).each(function (i) {
+                            let replacement;
+                            let option = $("#question input").eq(this.charCodeAt(0) - 65);
+                            if ($("#question input").attr('type') == "checkbox" && i == 0)
+                                replacement = `${option.parent().text().replace(/^[A-I] /, "")}/_`;
+                            else
+                                replacement = option.parent().text().replace(/^[A-I] /, "");
+                            $('#question :first-child p').html($('#question :first-child p').html().replace(/_+/, `<b>${replacement}</b>`))
+                            option[0].click();
                         });
                     }
+
                     setStyle();
 
-                })//[0].click();
-                if (!greFlag && !uri.includes("test.html")) showSpecialQuestion(article, questionDiv);
+                }) //[0].click();
+
+                if (!greFlag && !uri.match("test.html")) showSpecialQuestion(article, questionDiv);
                 addWord();
                 setStyle();
-
             });
         });
     }
 
     questions = $("#questions [id^='question']");
+    var audio = $("audio", main);
+    if (audio.length > 0) {
+        audio[0].src = `${mediaRoot}/audio/toefl/${html.match(/[a-z]+/)}/${html.match(/\w+/)}/${html}.mp3`
+    }
     if ($("#questions").length > 0) { // Update Verbal Reasoning UI
         // audio lyrics
-        let audio = $("audio", main);
-        if (audio && uri.includes("listening")) {
-            var timeSpan = $(".time", main);
-            timeSpan.each(function () {
-                $(this).hide()
-            });
-            n = 0;
-            let listening = $("article.passage", main);
-            setArticleHeight(listening, screen.height - audio.offsetTop - 160 + "px")
+        if (audio.length > 0 && uri.match("listening")) {
 
-            if (timeSpan) {
-                audio.ontimeupdate = () => {
-                    let duration = parseFloat(timeSpan[n].getAttribute("data-times")) + parseFloat(timeSpan[n].getAttribute("data-time"));
-                    if (parseFloat(this.currentTime.toFixed(2)) <= duration) {
-                        listening.scrollTop = timeSpan[n].parentNode.offsetTop - 320;
-                        addHighlight(timeSpan[n].parentNode);
+            //let listening = $("article.passage", main);
+            //setArticleHeight(listening, screen.height - audio.offset().top - 160 + "px")
+
+            var times = $(".time", main).hide();
+            var n = 0;
+            if (times.length > 0) {
+                audio[0].ontimeupdate = () => {
+                    let time = $(times[n]);
+                    let duration = parseFloat(time.data("times")) + parseFloat(time.data("time"));
+                    let parent = time.parent()
+                    time[0].scrollIntoView()
+                    if (parseFloat(audio[0].currentTime.toFixed(2)) <= duration) {
+                        //screen.scrollTop(parent.offset().top - 320);
+                        addHighlight(parent);
                     } else {
-                        removeHighlight(timeSpan[n].parentNode);
+                        removeHighlight(parent);
                         n++;
                     }
                 };
@@ -1148,7 +1078,6 @@ function updateQuestionUI() {
                 });
             });
         }
-
         /**
          * response = $("#response");
         question = $("#question");
@@ -1173,6 +1102,6 @@ function updateQuestionUI() {
         setArticleHeight($("#reading-text"));
          */
     }
-    
+
     setStyle();
 }

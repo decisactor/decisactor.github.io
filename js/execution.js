@@ -18,10 +18,6 @@ function createNode(tag, attributes) {
     return node;
 }
 
-function waitLoad(selector, func) {
-    document.querySelector(selector).onload = () => func();
-}
-
 function getRandom(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
@@ -50,7 +46,18 @@ function addHead() {
     }).appendTo(head);
 
     // CSS 
-    let styles = ["w3", "colors", "style"]
+    $("<link>", {
+        rel: "stylesheet",
+        href: `https://raw.githack.com/JaniRefsnes/w3css/master/w3.css`,
+        type: 'text/css'
+    }).appendTo(head);
+    
+    $("<link>", {
+        rel: "stylesheet",
+        href: `https://www.w3schools.com/w3css/4/w3.css`
+    }).appendTo(head);
+
+    let styles = ["colors", "style"]
     $(styles).each(function () {
         $("<link>", {
             rel: "stylesheet",
@@ -60,8 +67,12 @@ function addHead() {
 
     // Website Icon
     $("<link>", {
+        rel: "shortcut icon",
+        href: `#`
+    }).appendTo(head);
+    $("<link>", {
         rel: "icon",
-        href: `${icons8}color/50/ffffff/external-link.png`,
+        href: `${icons8}/color/50/ffffff/external-link.png`,
         size: "16x16",
         type: "image/png"
     }).appendTo(head);
@@ -71,10 +82,10 @@ function addHead() {
 function addTopNav(color) {
 
     // Set Bar Item
-    if (uri.includes("/toefl/")) {
+    if (uri.match("/toefl/")) {
         var test = "/toefl/"
         var barItems = ["TPO", "Essay", "OG", "PT", "EQ", "BE", "Cambridge", "Longman", "Notes"];
-    } else if (uri.includes("/gre/")) {
+    } else if (uri.match("/gre/")) {
         var test = "/gre/";
         var barItems = ["OG", "PQ", "PR", "Kap", "MP", "BE", "MH", "GR", "Notes"];
     } else {
@@ -83,18 +94,22 @@ function addTopNav(color) {
     }
 
     topNav = $("<nav>", {
-        class: `${color} w3-bar w3-card w3-center w3-margin-bottom`,
+        class: `${color} w3-bar w3-card w3-center w3-margin-bottom my-sticky`,
         id: "topNav"
-    }).prependTo($("body")).css({overflow: "auto", whiteSpace: "nowrap"});
+    }).prependTo($("body")).css({
+        overflow: "auto",
+        whiteSpace: "nowrap"
+    })
 
-    let size = mobileFlag ? 16 : 18;
-    let padding = mobileFlag ? "0 8px" : "4px 8px";
-    let float = mobileFlag ? "none" : "left";
+
     $("<a>", {
         href: `${folder}/index.html`,
         class: "w3-bar-item w3-button",
-        html: `<img src="${icons8}android/${size}/ffffff/home.png">`
-    }).appendTo(topNav).css({padding: padding, display: "inline-block"})
+        html: `<img src="${icons8}/android/${mobileFlag ? 16 : 18}/ffffff/home.png">`
+    }).appendTo(topNav).css({
+        padding: mobileFlag ? "0 8px" : "4px 8px",
+        display: "inline-block"
+    })
 
     // Add Bar Item
     $(barItems).each(function () {
@@ -102,15 +117,11 @@ function addTopNav(color) {
             href: folder + test + this.toLowerCase() + `/${this.toLowerCase()}.html`,
             class: "w3-bar-item w3-button my-padding",
             html: this
-        }).appendTo(topNav).css({float: float, display: "inline-block"});;
+        }).appendTo(topNav).css({
+            float: mobileFlag ? "none" : "left",
+            display: "inline-block"
+        });;
     });
-
-    $(window).scroll(() => {
-        if (window.pageYOffset != $(topNav).offset().Top) {
-            $(topNav).addClass("my-fixed")
-        }
-    });
-
 }
 
 function addFooter(color) {
@@ -127,7 +138,7 @@ function addFooter(color) {
 
     $(icons).each(function () {
         $("<img>", {
-            src: `${icons8}metro/20/ffffff/${this}.png`,
+            src: `${icons8}/metro/20/ffffff/${this}.png`,
             class: "my-margin-small"
         }).appendTo($("<a>", {
             href: `https://www.${this}.com`
@@ -135,16 +146,31 @@ function addFooter(color) {
     });
 
     $("<p>", {
-        html: `Made by <a href="https://mygithubpage.github.io">GitHubPages</a>`
+        html: `Made by <a href="https://${uri.split('/').slice(2.3)[0]}">GitHubPages</a>`
     }).appendTo(footer);
 }
 
-function addScripts(scripts) {
-    $(scripts).each(function () {
+function addScripts(scripts, func) {
+
+    function createScript(script) {
         createNode("<script>", {
-            id: `${this.split("/").slice(-1)}`,
-            src: `${folder}/js/${this}.js`
-        }).async = false;
+            id: `${script.split("/").slice(-1)}js`,
+            src: `${folder}/js/${script}.js`
+        });
+    }
+
+    function waitLoad(selector, func) {
+        document.querySelector(selector).onload = () => func();
+    }
+    if (!scripts.length) {
+        func();
+        return
+    }
+    if (typeof scripts == "string") scripts = new Array(scripts);
+    createScript(scripts[0]);
+    waitLoad(`#${scripts[0].split("/").slice(-1)}js`, () => {
+        scripts.shift()
+        addScripts(scripts, func);
     });
 }
 
@@ -153,17 +179,16 @@ function createNavigation(name) {
     function createWords(div, name, regexp) {
 
         $("<button>", {
-            class: "my-page",
+            class: "my-page w3-margin-top",
             html: name
         }).appendTo(div).click((e) => {
-            if ($(e.target).text().match("V")) { 
+            if ($(e.target).text().match("V")) {
                 name = "Verbal";
                 regexp = regexp.replace(/V\w*/, "");
             }
-            if (regexp.match(/\d/)) regexp = regexp.replace("-", " ").toUpperCase()
-            else {
+            if (!regexp.match(/\d/)) {
                 name = link.sets.find(set => set.links.includes(name)).name;
-                regexp = regexp + name
+                regexp = regexp.replace(" ", "-") + name.toLowerCase()
             }
             wordsDiv.html("");
             set = sets.find(set => set.name.match(regexp));
@@ -183,11 +208,9 @@ function createNavigation(name) {
                         $(set.words).each(function () {
                             addWordModal(this, wordsDiv);
                         });
-                    }
-                    else if (this.match("Recite")) {
+                    } else if (this.match("Recite")) {
                         createWordTest(set);
-                    }
-                    else if (this.match("Listen")) {
+                    } else if (this.match("Listen")) {
                         createListening(set);
                     }
                 });
@@ -203,7 +226,7 @@ function createNavigation(name) {
         }).appendTo(main);
 
         $("<div>", {
-            class: "w3-margin-right my-page",
+            class: "w3-margin-right my-page w3-margin-top",
             html: `${this.name}`
         }).appendTo(div);
 
@@ -212,13 +235,12 @@ function createNavigation(name) {
             $(this.links).each(function () {
                 if (!mobileFlag) name = this
                 else name = this.replace(/Issue ?/, "I").replace(/Argument ?/, "A").replace(/Verbal ?/, "V")
-                
+
                 if (html.match(/vocabulary/)) {
-                    createWords(div, name, `${link.name.toUpperCase()} ${name}`);
-                }
-                else {
+                    createWords(div, name, `${link.name} ${name}`);
+                } else {
                     $("<a>", {
-                        class: "my-page",
+                        class: "my-page w3-margin-top",
                         html: name,
                         href: `${link.name}-${href.name}-${this}.html`.toLowerCase()
                     }).appendTo(div);
@@ -229,10 +251,9 @@ function createNavigation(name) {
 
                 if (html.match(/vocabulary/)) {
                     createWords(div, i, `${this.href}`.replace("-verbal.html", i));
-                }
-                else {
+                } else {
                     $("<a>", {
-                        class: "w3-button w3-bar-item my-color my-page",
+                        class: "w3-button w3-bar-item my-color my-page w3-margin-top",
                         html: `${i}`,
                         href: `${this.href}`.replace("verbal.html", `verbal${i}.html`)
                     }).appendTo(div);
@@ -262,135 +283,105 @@ function execScripts() {
     }
 
     updateCharacter();
-    bgColor = window.getComputedStyle(topNav[0]).backgroundColor;
 
-    $(["computers", "literals/notes", "literals/bookmarks"]).each(function () {
-        if (uri.includes(`${this.replace("literals/", "")}.html`)) {
-            addScripts([this]);
-            if (this.includes("literals/")) waitLoad(`#${this.replace("literals/", "")}`, () => addTags());
+    $(["literals/notes", "literals/bookmarks"]).each(function () {
+        if (uri.match(`github(.io)?/notes/${this.toString().replace("literals/", "")}`)) {
+            addScripts(this.toString(), () => addTags());
         }
     })
 
-    if (uri.includes("vocabulary")) {
-        addScripts(["vocabulary", "literals/words"]);
-        waitLoad("#words", () => createWordSets());
-    }
-
     if ($("code").length) {
-        addScripts(["code"]);
-        waitLoad("#code", () => showCode());
+        addScripts("code", () => showCode());
     }
 
     if (sidebar.length) {
-        addScripts(["filter"]);
-        waitLoad("#filter", () => addTOC());
+        addTOC();
     }
 
-    if (uri.match(/gre/)) {
-        addScripts(["literals/gre"]);
-        if (uri.match(/gre\/(\w+).\1.html/) && !uri.includes("notes.html")) {
-            waitLoad("#gre", () => createNavigation(html));
-        }
+    if (uri.match("vocabulary") || uri.match(/gre\/(\w+).\1.html/) && !uri.match("notes")) {
+        addScripts("literals/gre", () => {
+            if (!uri.match("vocabulary")) createNavigation(html);
+        });
     }
 
-    if (uri.includes("topic")) {
-        //question = $("section").hide();
-        article = $("article").toggleClass("w3-section");
+    if (uri.match("topic")) {
 
-        //createNode(["div", question.html()], article, true);
-        var textarea = addTextarea(main).addClass("w3-section w3-block").removeClass("w3-half");
-        if (mobileFlag) {
-            textarea.css({
-                height: screen.height / 4 - 16 + "px"
-            });
-            article.css({
-                height: screen.height / 2 - 96 + "px",
-                overflow: "scroll"
-            });
-        }
-    }
-
-    if (uri.includes("essay.html")) {
-        addScripts(["literals/topics"]);
-        topics.forEach(topic => {
-            let div = $("<div>", {
-                class: "w3-section"
-            }).appendTo(main);
-            if (!mobileFlag) {
-                $("<span>", {
-                    class: "w3-padding my-color my-margin-small",
-                    html: `${topic.name}`
-                }).appendTo(div);
+        $("article").toggleClass("w3-section").css({
+            height: () => {
+                if (mobileFlag) return `${screen.height / 2 - 96}px`;
+            },
+            overflow: () => {
+                if (mobileFlag) return "scroll";
             }
-            addDropDown(topic.name, topic.count, div);
-        })
+        });
 
-        let div = $("<div>", {
-            class: "w3-bar"
-        }).appendTo(main, true);
-        createSearchBtn(div, `${color} my-search`, filterNodes, main.querySelectorAll(".w3-section"));
+        addTextarea(main).addClass("w3-section w3-block").removeClass("w3-half").css({
+            height: () => {
+                if (mobileFlag) return `${screen.height / 4 - 16 }px`;
+            }
+        });
+
     }
 
-    if (uri.includes("scoring-rubric")) {
-
-        function getChecked(array, description, table) {
-            let row = 1
-            let col = 0
-            let length = table.querySelector("tr").children.length - 2
-            for (let index = 0; index < array.length; index++) {
-                const element = array[index];
-                if (element.checked) {
-                    if (index > length) {
-                        row = index - length;
-                    } else {
-                        col = index + 1;
-                    }
+    if (uri.match("essay.html")) {
+        addScripts("literals/topics", () => {
+            topics.forEach(topic => {
+                let div = $("<div>", {
+                    class: "my-margin"
+                }).appendTo(main);
+                if (!mobileFlag) {
+                    $("<span>", {
+                        class: "w3-padding my-color my-margin-small",
+                        html: `${topic.name}`
+                    }).appendTo(div);
                 }
-            }
-
-            description.html(table.rows[row].cells[col].textContent);
-        }
-
-        if (mobileFlag) {
-            main.querySelectorAll(".my-table").forEach(table => {
-                table.addClass("w3-hide");
-
-                // create row select and col select radio input
-                let mobileTable = $("<table>", {
-                    class: "table"
-                }).appendTo(table.parentNode);
-                let tr = $("<tr>").appendTo(mobileTable);
-                for (let i = 1; i < table.querySelectorAll("th").length; i++) {
-                    const element = table.querySelectorAll("th")[i].text();
-                    createChoiceInput(tr, "radio", element, "header").addClass("my-margin-small");
-                }
-                tr = $("<tr>").appendTo(mobileTable);
-                for (let i = 1; i < table.rows.length; i++) {
-                    createChoiceInput(tr, "radio", table.rows[i].cells[0].text(), table.rows[0].cells[0].text()).addClass("my-margin-small");
-                }
-
-                tr = $("<tr>").appendTo(mobileTable);
-                let description = $("<div>", {
-                    class: "w3-section description"
-                }).appendTo(tr);
-
-                let inputs = mobileTable.querySelectorAll("input");
-                inputs.forEach(element => element.onchange = () => getChecked(inputs, description, table));
-                mobileTable.querySelectorAll("label").forEach(element => {
-                    element.style.display = "unset";
-                });
+                addDropDown(topic.name, topic.count, div);
             })
-
-        }
+            let div = $("<div>", {
+                class: "w3-bar"
+            }).appendTo(main, true);
+            createSearchBtn(div, `${color} my-search`, filterNodes, $(".w3-section", main));
+            setStyle();
+        })
     }
 
-    // index page
-    if (uri.includes("index.html")) {
-        addScripts(["homepage"]);
-        waitLoad("#homepage", () => showHomepage());
+    if (html == "" || html.match(/^index$/)) {
+        addScripts("homepage", () => showHomepage());
     }
 
-    if (uri.includes("quantitative")) {
+    if (testFlag || uri.match(/toefl(\/(tpo|og)){2}\.html/) || uri.match("vocabulary.html")) {
+        addScripts(["literals/words", "vocabulary"], () => {
+            if (uri.match("vocabulary.html")) {
+                createWordSets()
+            } else {
+                addScripts("test", () => {
+                    updateQuestionUI(questions);
+                    if (uri.match(/ing\d\.html/) || uri.match(/toefl\/(tpo|og)\/\1/)) {
+                        addScripts("literals/categories", () => {
+                            addCategoryFilter()
+                            setStyle();
+                        });
+                    } else {
+                        var parent;
+                        if (greFlag) {
+                            parent = $("<div>", {
+                                class: `w3-bar`,
+                            }).prependTo(main)
+                        } else {
+                            parent = main
+                        }
+                        $("<button>", {
+                            id: "test",
+                            class: `${color} w3-button w3-right w3-section my-bar-small`,
+                            html: "Test"
+                        }).prependTo(parent).click(startTest);
+                    }
+                })
+            }
+        })
+    }
+
+    if (uri.match("quantitative")) {
         let scripts = [
             "mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML",
             "jsxgraph/1.3.5/jsxgraphcore.js",
@@ -404,40 +395,15 @@ function execScripts() {
         });
     }
 
-    if (testFlag) {
-        addScripts(["test", "vocabulary", "literals/words"]);
-        waitLoad("#test", () => {
-            updateQuestionUI(questions);
-            if (uri.match(/ing\d\.html/)) {
-                addCategoryFilter();
-            } else {
-                var parent;
-                if (greFlag) {
-                    parent = $("<div>", {
-                        class: `w3-bar`,
-                    }).prependTo(main)
-                } else {
-                    parent = main
-                }
-                $("<button>", {
-                    id: "test",
-                    class: `${color} w3-button w3-right w3-section my-bar-small`,
-                    html: "Test"
-                }).prependTo(parent).click(startTest);
-            }
-        })
-    }
-
-    if (uri.match(/toefl(\/(tpo|og)){2}\.html/)) addCategoryFilter();
-    waitLoad("#style", () => setStyle());
-
+    setStyle();
 }
 
 mobileFlag = screen.width < 420 ? true : false;
-icons8 = "https://png.icons8.com/";
+icons8 = "https://png.icons8.com";
 html = uri.split("/").slice(-1)[0].split(".")[0];
+mediaRoot = "https://raw.githubusercontent.com/decisacters/media/master"
 
-window.addEventListener("load", () => {
+window.onload = () => {
     $(() => {
         head = $("head");
         main = $("main");
@@ -446,15 +412,24 @@ window.addEventListener("load", () => {
         if ($("#questions").length) questions = $("#questions [id^='question']");
         else questions = $("#question > div");
         testFlag = questions.length || $("#question").length;
-        greFlag = (/verbal|quantitative|issue|argument|test/).exec(uri)
-        addScripts(["literals/colors", "style", "filter"]);
+        greFlag = uri.match(/verbal|quantitative|issue|argument|test/)
+
         addHead();
-        waitLoad("#colors", () => {
+
+        addScripts("literals/colors", () => {
             addColor();
             addTopNav(color);
             addFooter(color);
-            execScripts();
-        });
 
+            addScripts(["style", "filter"], () => {
+                (function waitColor() {
+                    setTimeout(() => {
+                        bgColor = getComputedStyle(topNav[0]).backgroundColor;
+                        if (bgColor.match("rgba")) waitColor();
+                        else execScripts();
+                    }, 100);
+                })();
+            });
+        });
     });
-})
+}

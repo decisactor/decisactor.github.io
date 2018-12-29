@@ -5,11 +5,11 @@ $folders = "OneDrive", "Google Drive", "iCloudDrive", "Box Sync"
 }
 
 $folders.ForEach{
-    $root = if ($_ -notmatch ":") { "$env:USERPROFILE\$_\github\" } else { "$_\github\" }
+    $root = if ($_ -notmatch ":") { "$HOME\$_\github\" } else { "$_\github\" }
     if (!(Test-Path $root)) { 
         New-Item $root -ItemType Directory | Out-Null
         (Get-ChildItem "C:\github" -Recurse).ForEach{
-            Copy-Item $_ $_.Replace("C:", "$env:USERPROFILE\$_")
+            Copy-Item $_ $_.Replace("C:", "$HOME\$_")
         }
     }
     else {
@@ -29,6 +29,15 @@ $folders.ForEach{
 }
 
 <#
+git fetch --all
+git reset --hard origin/master
+
+sl $HOME\Downloads\Media
+git add .
+git commit -m "update"
+git push -u origin master 
+
+sl C:\GitHub
 git add .
 git commit -m "update"
 git push -u origin master 

@@ -7,12 +7,12 @@ var scripts = [
 
 uri = document.location.href;
 
-if (uri.includes("//C:")) folder = "/github"; // Windows
-else if (uri.includes("//storage"))  folder = "/storage/sdcard1/github"; // Android
+if (uri.match("//C:")) folder = "/github"; // Windows
+else if (uri.match("//storage"))  folder = "/storage/sdcard1/github"; // Android
 else folder = ""; // Web
 
 scripts.forEach(element => {
-    if (!element.includes("js/execution.js")) element = prefix + element // CDN
+    if (!element.match("js/execution.js")) element = prefix + element // CDN
     else element = folder + element
 
     var script = document.createElement('script');

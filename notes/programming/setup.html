@@ -18,31 +18,165 @@
         <section>
           <h3>Pre-Installation</h3>
 
-          <ol>
-            <li>Copy Files in <b>Downloads</b> and <b>Documents</b> to external hard drive</li>
-            <li>Download ISO From Torrent Sites <a href="https://www.1337x.to/search/windows+1809/1/">1337x</a></li>
-            <li>Create bootable USB drives by <a href="https://rufus.ie/">Rufus</a></li>
-          </ol>
+          <section>
+            <h4>Backup Files</h4>
+            <p>Copy Files in <b>Downloads</b> and <b>Documents</b> to external hard drive</p>
+
+            <pre><code class="ps">
+              
+            </code></pre>
+          </section>
+          <p>Download ISO From Torrent Sites <a href="https://www.1337x.to/search/windows+1809/1/">1337x</a></p>
+          <p>Create bootable USB drives by <a href="https://rufus.ie/">Rufus</a>. Install in VM by using chocolatey</p>
 
         </section>
 
         <section>
           <h3>Installation</h3>
 
-          <ol>
-            <li>Activate Windows by <a href="http://www.kmsauto.info/">KMSAuto</a></li>
-            <li>Update Drivers</li>
-            <li>Run code in Admin: <code class="ps"> Set-ExecutionPolicy Unrestricted</code></li>
-            <li>
-              <span>Install <a href="https://chocolatey.org/install">Chocolatey</a>. Run the following code in Admin (<code>Win + X, A</code>)</span>
-              <pre><code class="ps">
-              Set-ExecutionPolicy Bypass -Scope Process -Force
+          <p>Run code in Admin:</p>
+          <pre><code class="ps">
+            Set-ExecutionPolicy Unrestricted -Forced
+            C:\GitHub\powershell\Initialize-Windows.ps1
+          </code></pre>
+
+          <section>
+            <h4>Flags</h4>
+            <p></p>
+            <pre><code class="ps">
+              $VMFlag = ( Get-CimInstance Win32_ComputerSystem).Model -match "VMWare"
+              $PCFlag = ( Get-CimInstance Win32_LogicalDisk).Size[0] / (2 -shl 29) -gt 60
+              $GPUFlag = (( Get-CimInstance Win32_VideoController).Name -join "\n") -match "nvidia"
+            </code></pre>
+          </section>
+
+          <section>
+            <h4>Copy Files</h4>
+            <p></p>
+            <pre><code class="ps">
+              ( Get-PSDrive -PSProvider FileSystem ).Root.ForEach{
+                if (( Test-Path $_) -and ($_ | Get-ChildItem ).Name.Contains("Downloads") -and !$VMFlag) { 
+                  ( Get-ChildItem "$_\Downloads\").ForEach{
+                    if ($_.Name -match "GitHub") {
+                      Copy-Item $_.FullName "C:\" -Recurse
+                    }
+                  }
+                }
+              }
+            </code></pre>
+          </section>
+
+          <section>
+            <h4>Install <a href="https://chocolatey.org/install">Chocolatey</a> and Packages</h4>
+            <p>Use <a href="https://chocolatey.org/docs/commands-install">cinst</a> to install Packages</p>
+            <p>Reqired: <a href="">git</a>, <a href="">nodejs</a>, <a href="">vscode</a>, <a href="">7zip</a>, <a href="">vlc</a>, <a href="">googlechrome</a></p>
+            <p>Optional: <a href="">itunes</a>, <a href="">boxsync</a>, <a href="">virtualbox</a>, <a href="">steam</a>, <a href="">vmwareworkstation</a>, <a href="">firefox</a>, <a href="">icloud</a>, <a href="">teamviewer</a>, <a href="">dotnetcore</a>, <a href="">anaconda3</a>, <a href="">office</a></p>
+
+            <pre><code class="ps">
               Invoke-Expression (( New-Object System.Net.WebClient ).DownloadString('https://chocolatey.org/install.ps1'))
+              $programs = "git", "nodejs", "vscode", "7zip", "googlechrome"
+
+              if ($GPUFlag) { $programs += , "nvidia-display-driver" }
+              if ($VMFlag) { $programs += , "rufus" }
+              if ($PCFlag) { 
+                  $programs += , "utorrent", "vlc", "itunes", "boxsync", "virtualbox", "steam", "vmwareworkstation"#, "firefox", "icloud", "teamviewer", "dotnetcore", "anaconda3"
+              }
+              $programs.ForEach{
+                $program = $_
+                cinst.exe $program -y # yes
+              }
+            </code></pre>
+          </section>
+
+          <section>
+            <h4>Set up Git</h4>
+            <p>Use <a>git config</a> set up identity and if git is in a VM, first use <a>git init</a> to initialize the <code>C:\Github</code>, then use <a>git remote</a> to add origin, finally use <a>git pull</a> to get the repo.</p>
+            <pre><code class="git">
+              git config --global user.email "$user-@example.com"
+              git config --global user.name $user
+              if ($VMFlag) {
+                git init
+                git remote add origin "https://github.com/$($user)/$($user).github.io.git"
+                git pull origin master
+              }
+            </code></pre>
+          </section>
+
+          <section>
+            <h4>Set up VSCode</h4>
+            <p></p>
+            <pre><code class="ps">
+              $extensions = "akamud.vscode-theme-onedark", "dbaeumer.vscode-eslint", "donjayamanne.jquerysnippets", "eamodio.gitlens", "GrapeCity.gc-excelviewer", "HookyQR.beautify", "ms-vscode.PowerShell", "PKief.material-icon-theme", "zhuangtongfa.material-theme"
+              
+              $extensions.ForEach{
+                $extension = $_
+                Write-Host "Installing $_..."
+                code.cmd --install-extension $extension
+
+              }
+              Set-Content "$env:APPDATA\Code\User\settings.json" $settings
+              code.cmd "C:\GitHub"
+            </code></pre>
+          </section>
+
+          <section>
+            <h4>Insatll NPM js packages</h4>
+            <p>Use <a href="https://docs.npmjs.com/cli/install">npm i</a> to install <a href="npm">tesseract.js</a>, <a href="npm">puppeteer</a>, <a href="npm">cheerio</a>, <a href="npm">request</a>.</p>
+
+            <pre><code class="ps">
+              $packages = "tesseract.js puppeteer cheerio request"
+              Start-Process PowerShell "npm i $packages -g" # -g global
+            </code></pre>
+          </section>
+
+          <section>
+            <h4><a href="ms-settings:">Settings</a></h4>
+            <p><a href="https://docs.microsoft.com/en-us/windows/uwp/launch-resume/launch-settings-app">Launch the Windows Settings app</a></p>
+
+            <section>
+              <h5><a href="ms-settings:display">System &gt; Display</a></h5>
+              <p>Max Resolution</p>
+              <pre><code class="ps"></code></pre>
+            </section>
+
+            <section>
+              <h5><a href="ms-settings:powersleep">System &gt; Power & Sleep</a></h5>
+              <p>Screen: 10 20; Sleep: 30 1</p>
+              <pre><code class="ps"></code></pre>
+            </section>
+
+            <section>
+              <h5><a href="ms-settings:storagesense">System &gt; Storage</a></h5>
+              <p>Storage Sense</p>
+              <pre><code class="ps"></code></pre>
+            </section>
+
+            <section>
+              <h5><a href="ms-settings:clipboard">System &gt; Clipboard</a></h5>
+              <p>Clipboard History</p>
+              <pre><code class="ps"></code></pre>
+            </section>
+
+            <section>
+              <h5><a href="ms-settings:mousetouchpad">Device &gt; Mouse</a></h5>
+              <p>Scroll 15 lines</p>
+              <pre><code class="ps"></code></pre>
+            </section>
+
+            <section>
+              <h5><a href="ms-settins:typing">Device &gt; Typing</a></h5>
+              <p>Hardware Keyboard</p>
+              <pre><code class="ps">
+                New-Itemproperty 'HKCU:\Software\Microsoft\Input\Settings' 'EnableHwkbTextPrediction' -Value '1' -PropertyType DWORD
+                New-Itemproperty 'HKCU:\Software\Microsoft\Input\Settings' 'EnableHwkbAutocorrection' -Value '1' -PropertyType DWORD
               </code></pre>
-              <span>Run <code class="ps">C:\GitHub\powershell\Initialize-Windows.ps1</code></span>
-            </li>
-            <li>$env:Path += ";%AppData%\npm\node_modules"</li>
-          </ol>
+            </section>
+
+            <section>
+              <h5>File Extensions and Hidden Items</h5>
+            </section>
+
+          </section>
 
         </section>
 
@@ -50,10 +184,33 @@
           <h3>Post-Installation</h3>
 
           <section>
-            <h4>Chromium</h4>
+            <h4>Activation</h4>
+            <p>Activate Windows by <a href="http://www.kmsauto.info/">KMSAuto</a></p>
+            <p>Allow Exe in Windows Guard</p>
+          </section>
+
+          <section>
+            <h4>Update Drivers</h4>
+          </section>
+
+          <section>
+            <h4>Chrome</h4>
             <p>Download VPN CRX <a href="https://www.crx4chrome.com/crx/650/">Browsec</a> and drag and drop to <b>Extensions</b> with <b>Developer Mode</b> on.</p>
             <p>Install <a href="chrome">AdBlock</a>, <a href="chrome">Popup Blocker</a>, <a href="chrome">Google Dictionary</a>.</p>
           </section>
+
+          <section>
+            <h4>Store Apps</h4>
+            <pre><code class="ps">
+              ( Get-AppxPackage -AllUsers ).Name # get pacakge name 
+              Get-AppxPackage [packagename] | Remove-AppxPackage # remove package
+              Get-AppXPackage -AllUsers | # install build-in apps
+              ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml "} 
+              Get-AppxPackage -AllUsers Microsoft.WindowsStore | # install store
+              ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml "} 
+            </code></pre>
+          </section>
+
         </section>
 
       </section>
