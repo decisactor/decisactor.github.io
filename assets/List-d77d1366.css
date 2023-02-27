@@ -1,0 +1,1 @@
+.sticky{z-index:1;width:100%;position:fixed}.card{box-shadow:0 0 4px 1px #d3d3d3}.link{cursor:pointer;text-decoration:none}.list{margin:8px;padding:4px 0;overflow:scroll;border-radius:8px}.list .item>*{padding:2px 4px;display:inline-block}.list .remove,.list .toggle{padding:4px}.list .remove:hover,.list .toggle:hover{cursor:pointer}

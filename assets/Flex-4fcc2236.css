@@ -1,0 +1,1 @@
+.sticky{z-index:1;width:100%;position:fixed}.card{box-shadow:0 0 4px 1px #d3d3d3}.link{cursor:pointer;text-decoration:none}.flex{display:flex;flex-wrap:wrap;justify-content:center}.flex>.flex-item{cursor:pointer;border-radius:8px;text-align:center;display:inline-block;vertical-align:middle;padding:8px;margin:8px}.flex>.flex-item:hover{box-shadow:0 0 4px 1px #d3d3d3}
